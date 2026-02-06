@@ -1,0 +1,86 @@
+.hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* YouTube Video Container */
+.videoContainer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    pointer-events: none;
+    /* Prevent interaction with video */
+    overflow: hidden;
+}
+
+.youtubeVideo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* Make video larger to cover the container and hide black bars */
+    width: 177.78vh;
+    /* 16:9 aspect ratio - 100vh * 16/9 */
+    height: 100vh;
+    min-width: 100vw;
+    min-height: 56.25vw;
+    /* 16:9 aspect ratio - 100vw * 9/16 */
+    border: none;
+    pointer-events: none;
+}
+
+/* Fallback background when video loads */
+.fallbackBg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Light gray gradient like original */
+    background: linear-gradient(135deg,
+            #e8e8e8 0%,
+            #d0d0d0 25%,
+            #c8c8c8 50%,
+            #d8d8d8 75%,
+            #e0e0e0 100%);
+    z-index: 0;
+}
+
+/* Subtle overlay for header readability */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Very light overlay */
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0.08) 0%,
+            transparent 15%,
+            transparent 100%);
+    z-index: 2;
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .youtubeVideo {
+        /* Adjust for mobile - prioritize height coverage */
+        width: 300vw;
+        height: 100vh;
+        min-width: 300vw;
+    }
+}
+
+@media (max-aspect-ratio: 16/9) {
+    .youtubeVideo {
+        /* For tall screens, prioritize width */
+        width: 100vw;
+        height: 56.25vw;
+    }
+}

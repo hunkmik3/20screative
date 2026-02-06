@@ -1,0 +1,234 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 16px 32px;
+    background: transparent;
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
+}
+
+/* Left Navigation */
+.leftNav {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1;
+}
+
+.navLink {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #000000;
+    transition: opacity var(--transition-fast);
+    text-decoration: none;
+}
+
+.navLink:hover {
+    opacity: 0.5;
+    color: #000000;
+}
+
+.navLink.active {
+    opacity: 0.5;
+}
+
+/* Center Logo */
+.logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-body);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: #000000;
+    transition: opacity var(--transition-fast);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.logoAccent {
+    font-weight: 400;
+}
+
+.logo:hover {
+    opacity: 0.7;
+    color: #000000;
+}
+
+/* Right Section */
+.rightNav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+.socialLinks {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.socialLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000000;
+    transition: opacity var(--transition-fast);
+}
+
+.socialLink svg {
+    width: 16px;
+    height: 16px;
+}
+
+.socialLink:hover {
+    opacity: 0.5;
+    color: #000000;
+}
+
+.contactBtn {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #000000;
+    padding: 6px 14px;
+    border: 1px solid #000000;
+    background: transparent;
+    transition: all var(--transition-smooth);
+    text-decoration: none;
+}
+
+.contactBtn:hover {
+    background: #000000;
+    color: #ffffff;
+}
+
+/* Hamburger */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    width: 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+}
+
+.hamburger span {
+    display: block;
+    width: 100%;
+    height: 1px;
+    background: #000000;
+    transition: transform var(--transition-smooth), opacity var(--transition-smooth);
+}
+
+.hamburgerActive span:nth-child(1) {
+    transform: translateY(5px) rotate(45deg);
+}
+
+.hamburgerActive span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburgerActive span:nth-child(3) {
+    transform: translateY(-5px) rotate(-45deg);
+}
+
+/* Mobile Menu */
+.mobileMenu {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-smooth);
+}
+
+.mobileMenuActive {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mobileNav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.mobileNavLink {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #000000;
+    text-decoration: none;
+    transition: opacity var(--transition-fast);
+}
+
+.mobileNavLink:hover,
+.mobileNavLink.active {
+    opacity: 0.5;
+}
+
+.mobileSocial {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.mobileSocial .socialLink {
+    color: #000000;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .header {
+        padding: 14px 20px;
+    }
+
+    .leftNav {
+        display: none;
+    }
+
+    .rightNav {
+        display: none;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .logo {
+        position: relative;
+        left: auto;
+        transform: none;
+        font-size: 18px;
+    }
+}

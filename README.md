@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 20sCreative Portfolio
 
-## Getting Started
+A premium photography and filmmaking portfolio website built with Next.js, inspired by [Vivienne & Tamas](https://www.vivienneandtamas.com/).
 
-First, run the development server:
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
 
 ```bash
+cd portfolio-20s
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the website.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+portfolio-20s/
+├── src/
+│   ├── app/                   # Next.js App Router pages
+│   │   ├── page.tsx           # Homepage with video background
+│   │   ├── jewelry/           # Jewelry gallery page
+│   │   ├── beauty/            # Beauty gallery page
+│   │   ├── fashion/           # Fashion gallery page
+│   │   ├── showreel/          # Video showreel page
+│   │   ├── about/             # About page
+│   │   ├── contact/           # Contact page
+│   │   ├── privacy-policy/    # Privacy policy
+│   │   └── disclaimer/        # Disclaimer
+│   ├── components/            # Reusable components
+│   │   ├── Header.tsx         # Navigation header
+│   │   ├── Footer.tsx         # Footer
+│   │   ├── Gallery.tsx        # Image gallery grid
+│   │   ├── Lightbox.tsx       # Image lightbox viewer
+│   │   └── VideoPlayer.tsx    # Custom video player
+│   └── data/
+│       └── gallery.ts         # Gallery images & site config
+└── public/
+    ├── images/                # Your images
+    └── videos/                # Your videos
+```
 
-## Learn More
+## 🖼️ Replace Placeholder Content
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Replace Images
+Edit `src/data/gallery.ts` to add your own images:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```typescript
+export const jewelryImages: GalleryImage[] = [
+  {
+    id: "jewelry-1",
+    src: "/images/jewelry/your-image.jpg", // Local image
+    // or
+    src: "https://your-cdn.com/image.jpg", // External image
+    alt: "Description of image",
+    width: 800,
+    height: 1200,
+  },
+  // Add more images...
+];
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. Replace Videos
+Add your videos to `public/videos/`:
+- `showreel.mp4` - Homepage background video
+- `showreel-fashion.mp4` - Fashion showreel
+- `showreel-beauty.mp4` - Beauty showreel
 
-## Deploy on Vercel
+### 3. Update Site Config
+Edit `src/data/gallery.ts`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```typescript
+export const siteConfig = {
+  name: "20sCreative",
+  tagline: "Your tagline here",
+  email: "your@email.com",
+  phone: "+84.XXX.XXX.XXX",
+  // ...
+};
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 Customization
+
+### Colors
+Edit CSS variables in `src/app/globals.css`:
+
+```css
+:root {
+  --color-bg: #0a0a0a;           /* Background */
+  --color-text: #ffffff;          /* Text */
+  --color-accent: #d4af37;        /* Accent (gold) */
+  /* ... */
+}
+```
+
+### Fonts
+The site uses:
+- **Cormorant Garamond** - Display/headings
+- **Inter** - Body text
+
+Change in `src/app/layout.tsx`.
+
+## 📱 Features
+
+- ✅ Fullscreen video background homepage
+- ✅ Responsive image gallery with lightbox
+- ✅ Smooth page transitions
+- ✅ Mobile-friendly navigation
+- ✅ SEO optimized
+- ✅ Dark luxury theme
+- ✅ Keyboard navigation in lightbox
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+```bash
+npm run build
+# Deploy to Vercel
+```
+
+### Static Export
+```bash
+npm run build
+# Output in .next folder
+```
+
+## 📄 License
+
+This project is for personal portfolio use.
+
+---
+
+Made with ❤️ by 20sCreative

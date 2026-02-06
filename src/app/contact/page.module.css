@@ -1,0 +1,114 @@
+.page {
+    min-height: 100vh;
+    padding-top: var(--header-height);
+    display: flex;
+    align-items: center;
+    background: var(--color-bg);
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 60px var(--container-padding);
+    text-align: center;
+}
+
+.section {
+    margin-bottom: 48px;
+}
+
+.section:last-child {
+    margin-bottom: 0;
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--color-text-dark);
+    margin-bottom: 20px;
+}
+
+.sectionTitle {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-dark);
+    margin-bottom: 16px;
+}
+
+.contactInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.contactLink {
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 2vw, 1.5rem);
+    font-weight: 400;
+    color: var(--color-text-dark);
+    transition: opacity var(--transition-fast);
+}
+
+.contactLink:hover {
+    opacity: 0.6;
+}
+
+.repBlock {
+    margin-bottom: 28px;
+}
+
+.repBlock:last-child {
+    margin-bottom: 0;
+}
+
+.repLabel {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 6px;
+}
+
+.repBlock .contactLink {
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.socialLinks {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+}
+
+.socialLink {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text);
+    transition: opacity var(--transition-fast);
+}
+
+.socialLink:hover {
+    opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 40px var(--container-padding);
+    }
+
+    .page {
+        align-items: flex-start;
+    }
+
+    .socialLinks {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
