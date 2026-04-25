@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/data/gallery";
+import ContactForm from "./ContactForm";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -11,64 +11,44 @@ export const metadata: Metadata = {
 export default function ContactPage() {
     return (
         <div className={styles.page}>
-            <div className={styles.container}>
-                {/* Main Contact */}
-                <section className={styles.section}>
-                    <h1 className={styles.title}>Photography & Film Inquiries</h1>
-                    <div className={styles.contactInfo}>
-                        <a href={`mailto:${siteConfig.email}`} className={styles.contactLink}>
-                            {siteConfig.email}
-                        </a>
-                        <a href={`tel:${siteConfig.phone.replace(/\./g, "")}`} className={styles.contactLink}>
-                            {siteConfig.phone}
-                        </a>
-                    </div>
-                </section>
+            <div className={styles.grid}>
+                {/* Left: Business Info */}
+                <aside className={styles.infoCol}>
+                    <p className={styles.eyebrow}>Creative Agency</p>
+                    <h1 className={styles.heading}>
+                        Let&apos;s create
+                        <br />
+                        something together.
+                    </h1>
 
-                {/* Representation */}
-                <section className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Representation</h2>
+                    <div className={styles.infoList}>
+                        <div className={styles.infoBlock}>
+                            <p className={styles.infoLabel}>Email</p>
+                            <a
+                                href="mailto:20screativee@gmail.com"
+                                className={styles.infoValue}
+                            >
+                                20screativee@gmail.com
+                            </a>
+                        </div>
 
-                    <div className={styles.repBlock}>
-                        <p className={styles.repLabel}>International Inquiries</p>
-                        <a href={`tel:${siteConfig.phone.replace(/\./g, "")}`} className={styles.contactLink}>
-                            {siteConfig.phone}
-                        </a>
-                        <a href={`mailto:${siteConfig.email}`} className={styles.contactLink}>
-                            {siteConfig.email}
-                        </a>
-                    </div>
-                </section>
+                        <div className={styles.infoBlock}>
+                            <p className={styles.infoLabel}>Phone</p>
+                            <a href="tel:0937005195" className={styles.infoValue}>
+                                0937005195
+                            </a>
+                        </div>
 
-                {/* Social Links */}
-                <section className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Follow Us</h2>
-                    <div className={styles.socialLinks}>
-                        <a
-                            href={siteConfig.social.instagram}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.socialLink}
-                        >
-                            Instagram
-                        </a>
-                        <a
-                            href={siteConfig.social.behance}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.socialLink}
-                        >
-                            Behance
-                        </a>
-                        <a
-                            href={siteConfig.social.vimeo}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.socialLink}
-                        >
-                            Vimeo
-                        </a>
+                        <div className={styles.infoBlock}>
+                            <p className={styles.infoLabel}>Location</p>
+                            <p className={styles.infoValue}>Hồ Chí Minh, Việt Nam</p>
+                        </div>
                     </div>
+                </aside>
+
+                {/* Right: Contact Form */}
+                <section className={styles.formCol}>
+                    <ContactForm />
                 </section>
             </div>
         </div>

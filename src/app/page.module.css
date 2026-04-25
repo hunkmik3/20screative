@@ -2,6 +2,7 @@
     position: relative;
     width: 100%;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -11,28 +12,26 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     z-index: 1;
     pointer-events: none;
-    /* Prevent interaction with video */
     overflow: hidden;
 }
 
-.youtubeVideo {
+.heroVideo {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    /* Make video larger to cover the container and hide black bars */
-    width: 177.78vh;
-    /* 16:9 aspect ratio - 100vh * 16/9 */
-    height: 100vh;
-    min-width: 100vw;
-    min-height: 56.25vw;
-    /* 16:9 aspect ratio - 100vw * 9/16 */
+    /* Scale ~120% beyond viewport so YouTube chrome bars (when iframe fallback) are pushed out of view */
+    width: 213.33vh;
+    height: 120vh;
+    min-width: 120vw;
+    min-height: 67.5vw;
     border: none;
     pointer-events: none;
+    object-fit: cover;
 }
 
 /* Fallback background when video loads */
@@ -42,7 +41,6 @@
     left: 0;
     width: 100%;
     height: 100%;
-    /* Light gray gradient like original */
     background: linear-gradient(135deg,
             #e8e8e8 0%,
             #d0d0d0 25%,
@@ -52,25 +50,85 @@
     z-index: 0;
 }
 
-/* Subtle overlay for header readability */
+/* Subtle overlay for readability */
 .overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* Very light overlay */
     background: linear-gradient(to bottom,
             rgba(255, 255, 255, 0.08) 0%,
             transparent 15%,
-            transparent 100%);
+            transparent 60%,
+            rgba(255, 255, 255, 0.12) 100%);
     z-index: 2;
     pointer-events: none;
 }
 
+/* Loading Overlay */
+.loadingOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.6s ease, visibility 0s linear 0s;
+}
+
+.loadingHidden {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+    pointer-events: none;
+}
+
+.loadingContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    width: min(420px, 80vw);
+}
+
+.loadingLogo {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 575;
+    letter-spacing: 0.01em;
+    color: #000000;
+    margin: 0;
+}
+
+.loadingBarTrack {
+    width: 100%;
+    height: 2px;
+    background: #e5e5e5;
+    overflow: hidden;
+}
+
+.loadingBarFill {
+    height: 100%;
+    background: #000000;
+    transition: width 0.3s ease;
+}
+
+.loadingText {
+    font-family: var(--font-body);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #888;
+    margin: 0;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-    .youtubeVideo {
-        /* Adjust for mobile - prioritize height coverage */
+    .heroVideo {
         width: 300vw;
         height: 100vh;
         min-width: 300vw;
@@ -78,8 +136,7 @@
 }
 
 @media (max-aspect-ratio: 16/9) {
-    .youtubeVideo {
-        /* For tall screens, prioritize width */
+    .heroVideo {
         width: 100vw;
         height: 56.25vw;
     }

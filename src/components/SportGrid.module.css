@@ -1,0 +1,133 @@
+.wrapper {
+    max-width: 80%;
+    margin: 0 auto;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    padding: 48px 0 24px;
+}
+
+.pageTitle {
+    font-family: var(--font-serif), Georgia, serif;
+    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-text-dark);
+}
+
+/* Separator */
+.separator {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #c8956c, #d4a574, #c8956c);
+    margin: 0;
+}
+
+/* Card List */
+.list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Card */
+.card {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2.2/1;
+    overflow: hidden;
+    margin: 40px 0;
+    cursor: pointer;
+}
+
+.cardImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-slow);
+}
+
+.card:hover .cardImage {
+    transform: scale(1.03);
+}
+
+.cardOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    padding: 24px;
+    transition: background var(--transition-smooth);
+}
+
+.card:hover .cardOverlay {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.cardTitle {
+    font-family: var(--font-serif), Georgia, serif;
+    font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.2;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.cardSubtitle {
+    font-family: var(--font-body);
+    font-size: clamp(0.75rem, 1vw, 0.9rem);
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 500px;
+    line-height: 1.5;
+}
+
+.cardBtn {
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #ffffff;
+    padding: 10px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: transparent;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: all var(--transition-smooth);
+}
+
+.cardBtn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card {
+        aspect-ratio: 16/10;
+        margin: 28px 0;
+    }
+
+    .cardTitle {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .wrapper {
+        max-width: 95%;
+    }
+
+    .card {
+        aspect-ratio: 4/3;
+        margin: 20px 0;
+    }
+}

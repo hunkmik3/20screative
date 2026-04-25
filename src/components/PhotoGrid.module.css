@@ -1,0 +1,321 @@
+.wrapper {
+    max-width: 80%;
+    margin: 0 auto;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    padding: 48px 0 32px;
+}
+
+.pageTitle {
+    font-family: var(--font-serif), Georgia, serif;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-dark);
+    margin-bottom: 8px;
+}
+
+.pageSubtitle {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--color-text-muted);
+}
+
+/* ================================
+   GRID
+   ================================ */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+}
+
+/* Row 1 pattern: 2 large cards */
+.card:nth-child(10n+1),
+.card:nth-child(10n+2) {
+    grid-column: span 3;
+}
+
+.card:nth-child(10n+1) .cardImage,
+.card:nth-child(10n+2) .cardImage {
+    aspect-ratio: 16/10;
+}
+
+/* Row 2 pattern: 3 medium cards */
+.card:nth-child(10n+3),
+.card:nth-child(10n+4),
+.card:nth-child(10n+5) {
+    grid-column: span 2;
+}
+
+/* Row 3 pattern: 2 large cards */
+.card:nth-child(10n+6),
+.card:nth-child(10n+7) {
+    grid-column: span 3;
+}
+
+.card:nth-child(10n+6) .cardImage,
+.card:nth-child(10n+7) .cardImage {
+    aspect-ratio: 16/10;
+}
+
+/* Row 4 pattern: 3 small cards */
+.card:nth-child(10n+8),
+.card:nth-child(10n+9),
+.card:nth-child(10n+10) {
+    grid-column: span 2;
+}
+
+/* ================================
+   CARD
+   ================================ */
+.card {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.cardImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--transition-slow);
+}
+
+.card:hover .cardImage {
+    transform: scale(1.04);
+}
+
+/* Text overlay */
+.cardOverlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: none;
+}
+
+.cardTitle {
+    font-family: var(--font-serif), Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.3;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.cardDesc {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.45;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Duration badge */
+.duration {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #ffffff;
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 400;
+    padding: 2px 6px;
+    border-radius: 2px;
+    z-index: 2;
+}
+
+/* ================================
+   LOAD MORE
+   ================================ */
+.loadMore {
+    text-align: center;
+    padding: 48px 0 20px;
+}
+
+.loadMoreBtn {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 36px;
+    border: 1px solid var(--color-text-dark);
+    background: transparent;
+    color: var(--color-text-dark);
+    cursor: pointer;
+    transition: all var(--transition-smooth);
+}
+
+.loadMoreBtn:hover {
+    background: var(--color-text-dark);
+    color: #ffffff;
+}
+
+/* ================================
+   LIGHTBOX
+   ================================ */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.lightboxClose {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 2rem;
+    cursor: pointer;
+    z-index: 1001;
+    line-height: 1;
+    transition: opacity var(--transition-fast);
+}
+
+.lightboxClose:hover {
+    opacity: 0.6;
+}
+
+.lightboxPrev,
+.lightboxNext {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    z-index: 1001;
+    padding: 12px;
+    transition: opacity var(--transition-fast);
+}
+
+.lightboxPrev { left: 16px; }
+.lightboxNext { right: 16px; }
+
+.lightboxPrev:hover,
+.lightboxNext:hover {
+    opacity: 0.6;
+}
+
+.lightboxPrev svg,
+.lightboxNext svg {
+    width: 32px;
+    height: 32px;
+}
+
+.lightboxContent {
+    max-width: 85vw;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: default;
+}
+
+.lightboxImage {
+    max-width: 100%;
+    max-height: 75vh;
+    object-fit: contain;
+    width: auto;
+    height: auto;
+}
+
+.lightboxInfo {
+    text-align: center;
+    margin-top: 16px;
+    color: #ffffff;
+}
+
+.lightboxInfo h3 {
+    font-family: var(--font-serif), Georgia, serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.lightboxInfo p {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ================================
+   RESPONSIVE
+   ================================ */
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .card:nth-child(10n+1),
+    .card:nth-child(10n+2),
+    .card:nth-child(10n+6),
+    .card:nth-child(10n+7) {
+        grid-column: span 2;
+    }
+
+    .card:nth-child(10n+3),
+    .card:nth-child(10n+4),
+    .card:nth-child(10n+5),
+    .card:nth-child(10n+8),
+    .card:nth-child(10n+9),
+    .card:nth-child(10n+10) {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 600px) {
+    .wrapper {
+        max-width: 95%;
+    }
+
+    .grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+    }
+
+    .card:nth-child(10n+1),
+    .card:nth-child(10n+2),
+    .card:nth-child(10n+3),
+    .card:nth-child(10n+4),
+    .card:nth-child(10n+5),
+    .card:nth-child(10n+6),
+    .card:nth-child(10n+7),
+    .card:nth-child(10n+8),
+    .card:nth-child(10n+9),
+    .card:nth-child(10n+10) {
+        grid-column: span 1;
+    }
+
+    .cardTitle {
+        font-size: 0.85rem;
+    }
+
+    .cardDesc {
+        display: none;
+    }
+}

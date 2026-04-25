@@ -5,6 +5,10 @@
     right: 0;
     z-index: 100;
     padding: 16px 32px;
+    background: #ffffff;
+}
+
+.headerTransparent {
     background: transparent;
 }
 
@@ -25,9 +29,9 @@
 
 .navLink {
     font-family: var(--font-body);
-    font-size: 10px;
-    font-weight: 400;
-    letter-spacing: 0.04em;
+    font-size: 15.7px;
+    font-weight: 648;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     color: #000000;
     transition: opacity var(--transition-fast);
@@ -48,11 +52,10 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    font-family: var(--font-body);
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-size: 42px;
+    font-weight: 575;
+    letter-spacing: 0.01em;
     color: #000000;
     transition: opacity var(--transition-fast);
     text-decoration: none;
@@ -92,8 +95,8 @@
 }
 
 .socialLink svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
 }
 
 .socialLink:hover {
@@ -103,21 +106,22 @@
 
 .contactBtn {
     font-family: var(--font-body);
-    font-size: 10px;
+    font-size: 14.5px;
     font-weight: 400;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #000000;
-    padding: 6px 14px;
-    border: 1px solid #000000;
-    background: transparent;
+    color: #ffffff;
+    padding: 11px 22px;
+    border: none;
+    background: #000000;
     transition: all var(--transition-smooth);
     text-decoration: none;
 }
 
 .contactBtn:hover {
-    background: #000000;
+    background: #333333;
     color: #ffffff;
+    opacity: 1;
 }
 
 /* Hamburger */
@@ -229,6 +233,6 @@
         position: relative;
         left: auto;
         transform: none;
-        font-size: 18px;
+        font-size: 30px;
     }
 }

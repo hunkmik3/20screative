@@ -14,9 +14,9 @@
   --color-border: #e0e0e0;
   --color-border-dark: #333333;
 
-  /* Typography - Clean sans-serif like original */
-  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Typography - Tiffany & Co style: EB Garamond (~Sterling, Old Style serif) for logo, Nunito Sans (~Avenir Next, Humanist sans) for body & headings */
+  --font-display: 'EB Garamond', 'Times New Roman', serif;
+  --font-body: 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Spacing */
   --header-height: 70px;
@@ -59,7 +59,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: -0.01em;

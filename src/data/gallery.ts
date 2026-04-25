@@ -1,69 +1,436 @@
 import type { GalleryImage } from "@/components/Gallery";
+import type {
+    VideoProject,
+    NewestSeries,
+    FeaturedSeries,
+} from "@/components/ProjectGrid";
 
-// Placeholder images using picsum.photos for demo
-// Replace with your actual images later
+// ============================================
+// FASHION
+// ============================================
+
+export const fashionLatestVideos: VideoProject[] = [
+    {
+        id: "fl-1",
+        thumbnail: "https://picsum.photos/seed/fl1/800/1000",
+        title: "Spring/Summer Collection 2025",
+        description:
+            "A cinematic exploration of movement and texture through the lens of modern fashion.",
+        duration: "18:30",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "fl-2",
+        thumbnail: "https://picsum.photos/seed/fl2/800/450",
+        title: "Behind The Runway",
+        description:
+            "An intimate look backstage at Vietnam International Fashion Week.",
+        duration: "03:57",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "fl-3",
+        thumbnail: "https://picsum.photos/seed/fl3/800/450",
+        title: "Urban Streetwear Editorial",
+        description:
+            "Blending street culture with high fashion in the heart of Ho Chi Minh City.",
+        duration: "05:00",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "fl-4",
+        thumbnail: "https://picsum.photos/seed/fl4/800/450",
+        title: "Haute Couture: The Making",
+        description:
+            "Documenting the meticulous craftsmanship behind a couture collection.",
+        duration: "05:02",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "fl-5",
+        thumbnail: "https://picsum.photos/seed/fl5/800/450",
+        title: "Fashion Film: Metamorphosis",
+        description:
+            "A visual poem about transformation and identity through fashion.",
+        duration: "05:38",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+];
+
+export const fashionNewestSeries: NewestSeries = {
+    title: "In Motion",
+    description:
+        "Stories told through movement and unconventional performance in fashion",
+    thumbnail: "https://picsum.photos/seed/fnb/1400/500",
+    videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+};
+
+export const fashionFeaturedSeries: FeaturedSeries = {
+    title: "Fashion Filmmakers in Focus",
+    videoCount: 8,
+    description: "Turning the camera on the creative minds behind fashion films",
+    videos: [
+        {
+            id: "ff-1",
+            thumbnail: "https://picsum.photos/seed/ff1/800/450",
+            title: "Fashion Filmmakers: The Visionaries",
+            description: "",
+            duration: "12:11",
+            videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+        },
+        {
+            id: "ff-2",
+            thumbnail: "https://picsum.photos/seed/ff2/800/450",
+            title: "Fashion Filmmakers: Light & Fabric",
+            description: "",
+            duration: "02:15",
+            videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+        },
+        {
+            id: "ff-3",
+            thumbnail: "https://picsum.photos/seed/ff3/800/450",
+            title: "Fashion Filmmakers: Safe Light",
+            description: "",
+            duration: "10:20",
+            videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+        },
+        {
+            id: "ff-4",
+            thumbnail: "https://picsum.photos/seed/ff4/800/450",
+            title: "Fashion Filmmakers: New Wave",
+            description: "",
+            duration: "08:45",
+            videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+        },
+        {
+            id: "ff-5",
+            thumbnail: "https://picsum.photos/seed/ff5/800/450",
+            title: "Fashion Filmmakers: Silk Road",
+            description: "",
+            duration: "06:30",
+            videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+        },
+    ],
+};
+
+// ============================================
+// COMMERCIAL
+// ============================================
+
+export const commercialLatestVideos: VideoProject[] = [
+    {
+        id: "cl-1",
+        thumbnail: "https://picsum.photos/seed/cl1/800/1000",
+        title: "Brand Film: Luxury Lifestyle",
+        description:
+            "A high-end brand film capturing the essence of modern luxury living.",
+        duration: "12:00",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "cl-2",
+        thumbnail: "https://picsum.photos/seed/cl2/800/450",
+        title: "Product Launch: Tech Innovation",
+        description:
+            "Dynamic product reveal film for a cutting-edge technology brand.",
+        duration: "01:45",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "cl-3",
+        thumbnail: "https://picsum.photos/seed/cl3/800/450",
+        title: "Restaurant Campaign: Taste & Art",
+        description:
+            "Cinematic food storytelling blending culinary art with visual poetry.",
+        duration: "03:20",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "cl-4",
+        thumbnail: "https://picsum.photos/seed/cl4/800/450",
+        title: "Real Estate: Urban Living",
+        description:
+            "Architectural film showcasing premium urban living spaces.",
+        duration: "04:10",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "cl-5",
+        thumbnail: "https://picsum.photos/seed/cl5/800/450",
+        title: "Automotive: Drive & Design",
+        description:
+            "Capturing speed, design, and engineering excellence on film.",
+        duration: "02:55",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+];
+
+export const commercialNewestSeries: NewestSeries = {
+    title: "Brand Stories",
+    description:
+        "Crafting authentic narratives that connect brands with their audience",
+    thumbnail: "https://picsum.photos/seed/cnb/1400/500",
+    videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+};
+
+export const commercialFeaturedSeries: FeaturedSeries = {
+    title: "Corporate Profiles",
+    videoCount: 6,
+    description: "Telling the stories behind the world's most ambitious brands",
+    videos: [
+        {
+            id: "cf-1",
+            thumbnail: "https://picsum.photos/seed/cf1/800/450",
+            title: "Corporate: Vision & Mission",
+            description: "",
+            duration: "05:15",
+            videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+        },
+        {
+            id: "cf-2",
+            thumbnail: "https://picsum.photos/seed/cf2/800/450",
+            title: "Corporate: Building Legacy",
+            description: "",
+            duration: "03:40",
+            videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+        },
+        {
+            id: "cf-3",
+            thumbnail: "https://picsum.photos/seed/cf3/800/450",
+            title: "Corporate: Innovation Forward",
+            description: "",
+            duration: "07:20",
+            videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+        },
+        {
+            id: "cf-4",
+            thumbnail: "https://picsum.photos/seed/cf4/800/450",
+            title: "Corporate: Culture & People",
+            description: "",
+            duration: "04:50",
+            videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+        },
+    ],
+};
+
+// ============================================
+// SPORT (Special Programs style)
+// ============================================
+
+import type { SportProgram } from "@/components/SportGrid";
+
+export const sportPrograms: SportProgram[] = [
+    {
+        id: "sp-1",
+        thumbnail: "https://picsum.photos/seed/sp1/1400/600",
+        title: "#BeyondLimits",
+        subtitle:
+            "Following elite athletes as they push past physical and mental barriers | Marathon Series 2025",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "sp-2",
+        thumbnail: "https://picsum.photos/seed/sp2/1400/600",
+        title: "#RidingWaves",
+        subtitle:
+            "A cinematic exploration of surf culture and ocean life in Vietnam | Summer 2025",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "sp-3",
+        thumbnail: "https://picsum.photos/seed/sp3/1400/600",
+        title: "#TheFightersJourney",
+        subtitle:
+            "Raw and intimate portraits of dedication inside the boxing ring | Ongoing Series",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "sp-4",
+        thumbnail: "https://picsum.photos/seed/sp4/1400/600",
+        title: "#RoadAndSoul",
+        subtitle:
+            "Endurance, landscape, and the meditative rhythm of long-distance cycling | 2024-2025",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "sp-5",
+        thumbnail: "https://picsum.photos/seed/sp5/1400/600",
+        title: "#StrongerEveryday",
+        subtitle:
+            "High-energy campaign films for premium fitness and sportswear brands | Brand Partnerships",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "sp-6",
+        thumbnail: "https://picsum.photos/seed/sp6/1400/600",
+        title: "#DisciplineAndFlow",
+        subtitle:
+            "Capturing the grace and power of traditional martial arts in motion | Documentary Series",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+];
+
+// ============================================
+// PHOTO (Nowness Picks style grid)
+// ============================================
+
+import type { PhotoProject } from "@/components/PhotoGrid";
+
+export const photoGridProjects: PhotoProject[] = [
+    // Row 1: 2 large cards
+    {
+        id: "pg-1",
+        thumbnail: "https://picsum.photos/seed/pg1/800/500",
+        title: "Faces of Saigon",
+        description:
+            "Intimate portrait photography capturing the soul and rhythm of Ho Chi Minh City's streets",
+        duration: "02:29",
+    },
+    {
+        id: "pg-2",
+        thumbnail: "https://picsum.photos/seed/pg2/800/500",
+        title: "Light & Shadow: Studio Series",
+        description:
+            "Exploring dramatic contrasts and form through controlled studio lighting",
+        duration: "05:03",
+    },
+    // Row 2: 3 medium cards
+    {
+        id: "pg-3",
+        thumbnail: "https://picsum.photos/seed/pg3/800/600",
+        title: "Urban Stories",
+        description: "Candid street photography from Vietnam",
+        duration: "04:25",
+    },
+    {
+        id: "pg-4",
+        thumbnail: "https://picsum.photos/seed/pg4/800/600",
+        title: "Architecture: Lines & Spaces",
+        description:
+            "Geometric beauty and spatial design captured through the lens",
+        duration: "02:45",
+    },
+    {
+        id: "pg-5",
+        thumbnail: "https://picsum.photos/seed/pg5/800/600",
+        title: "Nature's Frame",
+        description: "Where landscape meets visual art",
+        duration: "04:50",
+    },
+    // Row 3: 2 large cards
+    {
+        id: "pg-6",
+        thumbnail: "https://picsum.photos/seed/pg6/800/500",
+        title: "Wanderlust: Travel Campaign",
+        description:
+            "Visual storytelling through landscapes, cultures, and distant horizons across Southeast Asia",
+        duration: "06:10",
+    },
+    {
+        id: "pg-7",
+        thumbnail: "https://picsum.photos/seed/pg7/800/500",
+        title: "Abstract Visions",
+        description:
+            "Experimental photography pushing the boundaries of visual perception and artistic expression",
+        duration: "03:35",
+    },
+    // Row 4: 3 small cards
+    {
+        id: "pg-8",
+        thumbnail: "https://picsum.photos/seed/pg8/800/600",
+        title: "Golden Hour Portraits",
+        description: "Capturing warmth in natural light",
+        duration: "05:22",
+    },
+    {
+        id: "pg-9",
+        thumbnail: "https://picsum.photos/seed/pg9/800/600",
+        title: "Behind The Lens",
+        description: "The creative process revealed",
+        duration: "03:31",
+    },
+    {
+        id: "pg-10",
+        thumbnail: "https://picsum.photos/seed/pg10/800/600",
+        title: "Editorial: New Perspectives",
+        description: "Fresh angles on visual storytelling",
+        duration: "07:15",
+    },
+];
+
+export interface PhotoProjectDetail {
+    id: string;
+    title: string;
+    subtitle: string;
+    images: GalleryImage[];
+}
+
+const makePhotoSet = (seedPrefix: string, title: string): GalleryImage[] => [
+    {
+        id: `${seedPrefix}-1`,
+        src: `https://picsum.photos/seed/${seedPrefix}1/1400/1900`,
+        alt: `${title} image 1`,
+        width: 1400,
+        height: 1900,
+    },
+    {
+        id: `${seedPrefix}-2`,
+        src: `https://picsum.photos/seed/${seedPrefix}2/1400/1000`,
+        alt: `${title} image 2`,
+        width: 1400,
+        height: 1000,
+    },
+    {
+        id: `${seedPrefix}-3`,
+        src: `https://picsum.photos/seed/${seedPrefix}3/1400/1400`,
+        alt: `${title} image 3`,
+        width: 1400,
+        height: 1400,
+    },
+    {
+        id: `${seedPrefix}-4`,
+        src: `https://picsum.photos/seed/${seedPrefix}4/1400/1750`,
+        alt: `${title} image 4`,
+        width: 1400,
+        height: 1750,
+    },
+    {
+        id: `${seedPrefix}-5`,
+        src: `https://picsum.photos/seed/${seedPrefix}5/1400/1050`,
+        alt: `${title} image 5`,
+        width: 1400,
+        height: 1050,
+    },
+    {
+        id: `${seedPrefix}-6`,
+        src: `https://picsum.photos/seed/${seedPrefix}6/1400/1200`,
+        alt: `${title} image 6`,
+        width: 1400,
+        height: 1200,
+    },
+];
+
+export const photoProjectDetails: PhotoProjectDetail[] = photoGridProjects.map(
+    (project, index) => ({
+        id: project.id,
+        title: project.title,
+        subtitle: project.description,
+        images: makePhotoSet(`photo-project-${index + 1}-`, project.title),
+    })
+);
+
+export const getPhotoProjectById = (id: string) =>
+    photoProjectDetails.find((project) => project.id === id);
+
+// ============================================
+// LEGACY GALLERY IMAGES (for reference)
+// ============================================
 
 export const jewelryImages: GalleryImage[] = [
     {
         id: "jewelry-1",
         src: "https://picsum.photos/seed/jewelry1/800/1200",
         alt: "Luxury jewelry photography 1",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "jewelry-2",
-        src: "https://picsum.photos/seed/jewelry2/800/1200",
-        alt: "Luxury jewelry photography 2",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "jewelry-3",
-        src: "https://picsum.photos/seed/jewelry3/800/1200",
-        alt: "Luxury jewelry photography 3",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "jewelry-4",
-        src: "https://picsum.photos/seed/jewelry4/800/1200",
-        alt: "Luxury jewelry photography 4",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "jewelry-5",
-        src: "https://picsum.photos/seed/jewelry5/800/1200",
-        alt: "Luxury jewelry photography 5",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "jewelry-6",
-        src: "https://picsum.photos/seed/jewelry6/800/1200",
-        alt: "Luxury jewelry photography 6",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "jewelry-7",
-        src: "https://picsum.photos/seed/jewelry7/800/1200",
-        alt: "Luxury jewelry photography 7",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "jewelry-8",
-        src: "https://picsum.photos/seed/jewelry8/800/1200",
-        alt: "Luxury jewelry photography 8",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "jewelry-9",
-        src: "https://picsum.photos/seed/jewelry9/800/1200",
-        alt: "Luxury jewelry photography 9",
         width: 800,
         height: 1200,
     },
@@ -77,69 +444,6 @@ export const beautyImages: GalleryImage[] = [
         width: 800,
         height: 1200,
     },
-    {
-        id: "beauty-2",
-        src: "https://picsum.photos/seed/beauty2/800/1200",
-        alt: "Beauty photography 2",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "beauty-3",
-        src: "https://picsum.photos/seed/beauty3/800/1200",
-        alt: "Beauty photography 3",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "beauty-4",
-        src: "https://picsum.photos/seed/beauty4/800/1200",
-        alt: "Beauty photography 4",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "beauty-5",
-        src: "https://picsum.photos/seed/beauty5/800/1200",
-        alt: "Beauty photography 5",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "beauty-6",
-        src: "https://picsum.photos/seed/beauty6/800/1200",
-        alt: "Beauty photography 6",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "beauty-7",
-        src: "https://picsum.photos/seed/beauty7/800/1200",
-        alt: "Beauty photography 7",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "beauty-8",
-        src: "https://picsum.photos/seed/beauty8/800/1200",
-        alt: "Beauty photography 8",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "beauty-9",
-        src: "https://picsum.photos/seed/beauty9/800/1200",
-        alt: "Beauty photography 9",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "beauty-10",
-        src: "https://picsum.photos/seed/beauty10/800/1200",
-        alt: "Beauty photography 10",
-        width: 800,
-        height: 1200,
-    },
 ];
 
 export const fashionImages: GalleryImage[] = [
@@ -150,42 +454,14 @@ export const fashionImages: GalleryImage[] = [
         width: 800,
         height: 1200,
     },
-    {
-        id: "fashion-2",
-        src: "https://picsum.photos/seed/fashion2/800/1200",
-        alt: "Fashion photography 2",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "fashion-3",
-        src: "https://picsum.photos/seed/fashion3/800/1200",
-        alt: "Fashion photography 3",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "fashion-4",
-        src: "https://picsum.photos/seed/fashion4/800/1200",
-        alt: "Fashion photography 4",
-        width: 800,
-        height: 1200,
-    },
-    {
-        id: "fashion-5",
-        src: "https://picsum.photos/seed/fashion5/800/1200",
-        alt: "Fashion photography 5",
-        width: 800,
-        height: 1200,
-    },
 ];
 
 // Site configuration
 export const siteConfig = {
     name: "20sCreative",
-    tagline: "Creative Photographer & Filmmaker",
+    tagline: "Video Production Studio",
     description:
-        "Creative photographer and filmmaker specializing in fashion, beauty, and jewelry campaigns.",
+        "Video production studio specializing in fashion, commercial, sport, and photo campaigns.",
     email: "hello@20screative.com",
     phone: "+84.XXX.XXX.XXX",
     locations: ["Ho Chi Minh City", "Hanoi", "International"],
