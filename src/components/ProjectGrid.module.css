@@ -70,6 +70,26 @@
     transition: transform var(--transition-slow);
 }
 
+.mediaPlaceholder {
+    width: 100%;
+    height: 100%;
+    min-height: 120px;
+    display: grid;
+    place-items: center;
+    background: #eeeeee;
+    color: #777777;
+    font-family: var(--font-body);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.bannerPlaceholder {
+    background: #111111;
+    color: rgba(255, 255, 255, 0.74);
+}
+
 .thumbnailWrapper:hover .thumbnail {
     transform: scale(1.04);
 }
@@ -215,7 +235,55 @@
 }
 
 /* ================================
-   SECTION 3: FEATURED VIDEO
+   SECTION 3: VIDEO LOOKBOOK editor slot
+   ================================ */
+.lookbookEditableSlot {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    gap: 12px;
+    position: relative;
+    border: 1px dashed transparent;
+    border-radius: 6px;
+    padding: 4px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.lookbookEditableSlot:hover,
+.lookbookEditableSlotSelected {
+    border-color: #2271b1;
+}
+
+.lookbookEditableSlotSelected::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 2px solid #2271b1;
+    border-radius: 8px;
+    pointer-events: none;
+    box-shadow: 0 0 0 4px rgba(34, 113, 177, 0.16);
+}
+
+.lookbookSlotMedia {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    background: #0a0a0a;
+    border-radius: 4px;
+}
+
+.lookbookSlotMedia video,
+.lookbookSlotImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ================================
+   LEGACY featured carousel (kept for reference)
    ================================ */
 .featuredSection {
     display: grid;

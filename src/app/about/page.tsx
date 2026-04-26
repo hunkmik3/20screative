@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { siteConfig } from "@/data/gallery";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
     title: "About | 20sCreative",
     description:
-        "Learn about 20sCreative - Creative photographer and filmmaker specializing in fashion, beauty, and jewelry campaigns.",
+        "Learn about 20sCreative - a video production studio creating fashion, commercial, sport, and photography-led visual stories.",
 };
 
 export default function AboutPage() {
@@ -16,58 +15,63 @@ export default function AboutPage() {
                 {/* Main Introduction */}
                 <section className={styles.intro}>
                     <h1 className={styles.title}>
-                        We&apos;re 20sCreative, a creative photographer & filmmaker,
-                        specializing in{" "}
-                        <Link href="/beauty" className={styles.link}>
-                            beauty
+                        We&apos;re 20sCreative, a video production studio crafting
+                        visual stories across{" "}
+                        <Link href="/fashion" className={styles.link}>
+                            fashion
                         </Link>{" "}
-                        &{" "}
-                        <Link href="/jewelry" className={styles.link}>
-                            jewelry
+                        ,{" "}
+                        <Link href="/commercial" className={styles.link}>
+                            commercial
                         </Link>
+                        ,{" "}
+                        <Link href="/sport" className={styles.link}>
+                            sport
+                        </Link>{" "}
+                        and{" "}
+                        <Link href="/photo" className={styles.link}>
+                            photo
+                        </Link>
+                        .
                     </h1>
                 </section>
 
                 {/* Description */}
                 <section className={styles.description}>
                     <p>
-                        Our creative approach is driven by experimentation, crafting visually
-                        striking and unique aesthetics that blend classic and contemporary
-                        photography. We consistently aim to captivate and surprise our
-                        audience.
+                        We build films, campaigns, lookbooks, editorial systems, and
+                        still-image stories for brands that care about rhythm, detail, and
+                        atmosphere. Every project begins with a clear visual direction, then
+                        moves through production with a practical focus on what the final
+                        audience needs to feel.
                     </p>
                     <p>
-                        We started our journey in creative photography and filmmaking with a
-                        passion for visual storytelling. Over the years, we&apos;ve had the
-                        privilege of working with incredible brands and talented individuals
-                        who share our vision for excellence.
+                        Our work sits between cinematic production and design-led image
+                        making. We handle creative development, pre-production, shooting,
+                        editing, color, sound, and delivery, keeping the process tight while
+                        leaving room for strong, unexpected moments on set.
                     </p>
                     <p>
-                        Our seamless transition between photography and directing ensures a
-                        cohesive, cinematic approach across all our endeavors. We&apos;re
-                        truly fueled by our deep passion for what we do, and that comes
-                        through in every project.
+                        From fashion films and brand profiles to sport stories and photo
+                        editorials, our goal is simple: make the work feel intentional,
+                        contemporary, and useful beyond a single post.
                     </p>
                 </section>
 
-                {/* Clients */}
+                {/* Capabilities */}
                 <section className={styles.clients}>
-                    <h2 className={styles.sectionTitle}>Clients</h2>
+                    <h2 className={styles.sectionTitle}>Capabilities</h2>
                     <p className={styles.clientList}>
-                        {siteConfig.clients.map((client, index) => (
-                            <span key={client}>
-                                {client}
-                                {index < siteConfig.clients.length - 1 && ", "}
-                            </span>
-                        ))}
-                        {" and more…"}
+                        Creative direction, production, cinematography, photography,
+                        editing, color grading, motion assets, campaign cutdowns, and
+                        delivery for web, social, and live presentation.
                     </p>
                 </section>
 
                 {/* CTA */}
                 <section className={styles.cta}>
                     <Link href="/contact" className={styles.ctaButton}>
-                        Get in Touch
+                        Start a Project
                     </Link>
                 </section>
             </div>

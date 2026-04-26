@@ -270,93 +270,95 @@ export const sportPrograms: SportProgram[] = [
     },
 ];
 
+export const sportFeaturedSeries: FeaturedSeries = {
+    title: "Sport Stories in Motion",
+    videoCount: 5,
+    description: "Vertical films built around speed, discipline, and movement",
+    videos: sportPrograms.slice(1).map((program, index) => ({
+        id: `sport-lookbook-${index + 1}`,
+        thumbnail: `https://picsum.photos/seed/sport-lookbook-${index + 1}/800/1200`,
+        title: program.title,
+        description: program.subtitle,
+        duration: "00:00",
+        videoUrl: program.videoUrl,
+    })),
+};
+
+export const sportOpeningSeries: FeaturedSeries = {
+    title: "Sport Lookbook",
+    videoCount: sportPrograms.length,
+    description: "A vertical opening sequence of athletic films and movement studies",
+    videos: sportPrograms.map((program, index) => ({
+        id: `sport-opening-${index + 1}`,
+        thumbnail: `https://picsum.photos/seed/sport-opening-${index + 1}/800/1200`,
+        title: program.title,
+        description: program.subtitle,
+        duration: "00:00",
+        videoUrl: program.videoUrl,
+    })),
+};
+
 // ============================================
 // PHOTO (Nowness Picks style grid)
 // ============================================
 
 import type { PhotoProject } from "@/components/PhotoGrid";
 
-export const photoGridProjects: PhotoProject[] = [
-    // Row 1: 2 large cards
-    {
-        id: "pg-1",
-        thumbnail: "https://picsum.photos/seed/pg1/800/500",
-        title: "Faces of Saigon",
-        description:
-            "Intimate portrait photography capturing the soul and rhythm of Ho Chi Minh City's streets",
-        duration: "02:29",
-    },
-    {
-        id: "pg-2",
-        thumbnail: "https://picsum.photos/seed/pg2/800/500",
-        title: "Light & Shadow: Studio Series",
-        description:
-            "Exploring dramatic contrasts and form through controlled studio lighting",
-        duration: "05:03",
-    },
-    // Row 2: 3 medium cards
-    {
-        id: "pg-3",
-        thumbnail: "https://picsum.photos/seed/pg3/800/600",
-        title: "Urban Stories",
-        description: "Candid street photography from Vietnam",
-        duration: "04:25",
-    },
-    {
-        id: "pg-4",
-        thumbnail: "https://picsum.photos/seed/pg4/800/600",
-        title: "Architecture: Lines & Spaces",
-        description:
-            "Geometric beauty and spatial design captured through the lens",
-        duration: "02:45",
-    },
-    {
-        id: "pg-5",
-        thumbnail: "https://picsum.photos/seed/pg5/800/600",
-        title: "Nature's Frame",
-        description: "Where landscape meets visual art",
-        duration: "04:50",
-    },
-    // Row 3: 2 large cards
-    {
-        id: "pg-6",
-        thumbnail: "https://picsum.photos/seed/pg6/800/500",
-        title: "Wanderlust: Travel Campaign",
-        description:
-            "Visual storytelling through landscapes, cultures, and distant horizons across Southeast Asia",
-        duration: "06:10",
-    },
-    {
-        id: "pg-7",
-        thumbnail: "https://picsum.photos/seed/pg7/800/500",
-        title: "Abstract Visions",
-        description:
-            "Experimental photography pushing the boundaries of visual perception and artistic expression",
-        duration: "03:35",
-    },
-    // Row 4: 3 small cards
-    {
-        id: "pg-8",
-        thumbnail: "https://picsum.photos/seed/pg8/800/600",
-        title: "Golden Hour Portraits",
-        description: "Capturing warmth in natural light",
-        duration: "05:22",
-    },
-    {
-        id: "pg-9",
-        thumbnail: "https://picsum.photos/seed/pg9/800/600",
-        title: "Behind The Lens",
-        description: "The creative process revealed",
-        duration: "03:31",
-    },
-    {
-        id: "pg-10",
-        thumbnail: "https://picsum.photos/seed/pg10/800/600",
-        title: "Editorial: New Perspectives",
-        description: "Fresh angles on visual storytelling",
-        duration: "07:15",
-    },
+const photoGalleryItems = [
+    ["Faces of Saigon", "Street portrait study in late afternoon light", "Portrait"],
+    ["Studio Lines", "Sharp silhouettes and controlled shadows", "Studio"],
+    ["Urban Stories", "Candid fragments from the city floor", "Street"],
+    ["Architectural Calm", "Geometry, glass, and quiet negative space", "Landscape"],
+    ["Green Frame", "Natural texture against a minimal composition", "Detail"],
+    ["Travel Campaign", "Open roads and cinematic distance", "Campaign"],
+    ["Abstract Vision", "Experimental form and color rhythm", "Abstract"],
+    ["Golden Hour", "Warm natural light across skin and fabric", "Portrait"],
+    ["Behind The Lens", "Process images from a working set", "BTS"],
+    ["New Perspectives", "Editorial angles and cropped motion", "Editorial"],
+    ["Soft Focus", "A muted beauty image with shallow depth", "Beauty"],
+    ["Concrete Garden", "Hard surfaces softened by organic movement", "Urban"],
+    ["Night Signal", "High contrast light passing through the frame", "Night"],
+    ["Coastal Shape", "Water, body, and horizon in dialogue", "Landscape"],
+    ["Product Detail", "A close study of material and reflection", "Commercial"],
+    ["Motion Still", "A frozen frame from a fast movement sequence", "Sport"],
+    ["Quiet Room", "Interior atmosphere with restrained composition", "Interior"],
+    ["Color Study", "A saturated editorial palette in layered blocks", "Color"],
+    ["Hands & Texture", "Touch, fabric, and small production details", "Detail"],
+    ["Open Frame", "A wide closing image with room for silence", "Wide"],
 ];
+
+const photoImageSizes = [
+    "1200/800",
+    "800/1200",
+    "1000/700",
+    "900/1200",
+    "1100/900",
+    "1300/760",
+    "800/1100",
+    "1000/1250",
+    "900/700",
+    "820/1200",
+    "1200/820",
+    "800/1000",
+    "1000/760",
+    "1300/900",
+    "760/1000",
+    "900/1200",
+    "1100/760",
+    "800/1180",
+    "1200/780",
+    "860/1200",
+];
+
+export const photoGridProjects: PhotoProject[] = photoGalleryItems.map(
+    ([title, description, duration], index) => ({
+        id: `pg-${index + 1}`,
+        thumbnail: `https://picsum.photos/seed/photo-asym-${index + 1}/${photoImageSizes[index]}`,
+        title,
+        description,
+        duration,
+    }),
+);
 
 export interface PhotoProjectDetail {
     id: string;

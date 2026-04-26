@@ -27,6 +27,8 @@ export default function VideoPlayer({
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(autoPlay);
     const [isMuted, setIsMuted] = useState(muted);
+    const cleanSrc = src.trim();
+    const cleanPoster = poster?.trim();
 
     const togglePlay = () => {
         if (videoRef.current) {
@@ -50,20 +52,24 @@ export default function VideoPlayer({
         <div className={`${styles.container} ${className}`}>
             {title && <h2 className={styles.title}>{title}</h2>}
             <div className={styles.videoWrapper}>
-                <video
-                    ref={videoRef}
-                    className={styles.video}
-                    src={src}
-                    poster={poster}
-                    autoPlay={autoPlay}
-                    muted={muted}
-                    loop={loop}
-                    playsInline
-                    controls={controls}
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                />
-                {!controls && (
+                {cleanSrc ? (
+                    <video
+                        ref={videoRef}
+                        className={styles.video}
+                        src={cleanSrc}
+                        poster={cleanPoster || undefined}
+                        autoPlay={autoPlay}
+                        muted={muted}
+                        loop={loop}
+                        playsInline
+                        controls={controls}
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
+                    />
+                ) : (
+                    <div className={styles.placeholder}>No video</div>
+                )}
+                {cleanSrc && !controls && (
                     <div className={styles.customControls}>
                         <button
                             className={styles.controlButton}

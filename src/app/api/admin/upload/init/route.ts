@@ -48,11 +48,23 @@ export async function POST(req: Request) {
   const r2 = getR2Client();
   const bucket = getR2Bucket();
 
+  // Aggressive cache + inline disposition so browsers stream + range-request
+  // videos efficiently. Object keys include a timestamp so cache invalidation
+  // happens automatically when admin uploads a new file.
+  const isVideo = contentType.startsWith("video/");
+  const isImage = contentType.startsWith("image/");
+  const cacheControl =
+    isVideo || isImage
+      ? "public, max-age=31536000, immutable"
+      : "public, max-age=3600";
+
   const create = await r2.send(
     new CreateMultipartUploadCommand({
       Bucket: bucket,
       Key: key,
       ContentType: contentType,
+      CacheControl: cacheControl,
+      ContentDisposition: "inline",
     }),
   );
   const uploadId = create.UploadId;

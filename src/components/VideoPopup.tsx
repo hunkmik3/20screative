@@ -58,7 +58,7 @@ export default function VideoPopup({
     fullscreen = false,
 }: VideoPopupProps) {
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || !videoUrl.trim()) return;
 
         const onKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") onClose();
@@ -71,12 +71,14 @@ export default function VideoPopup({
             document.body.style.overflow = "";
             window.removeEventListener("keydown", onKeyDown);
         };
-    }, [isOpen, onClose]);
+    }, [isOpen, onClose, videoUrl]);
 
-    if (!isOpen) return null;
+    const cleanVideoUrl = videoUrl.trim();
 
-    const youtube = isYoutubeUrl(videoUrl);
-    const src = youtube ? toEmbedUrl(videoUrl) : videoUrl;
+    if (!isOpen || !cleanVideoUrl) return null;
+
+    const youtube = isYoutubeUrl(cleanVideoUrl);
+    const src = youtube ? toEmbedUrl(cleanVideoUrl) : cleanVideoUrl;
 
     return (
         <div
@@ -107,7 +109,7 @@ export default function VideoPopup({
                         <iframe
                             className={styles.iframe}
                             src={src}
-                            title={title}
+                            title={title || "Video"}
                             allow="autoplay; encrypted-media; picture-in-picture"
                             allowFullScreen
                         />

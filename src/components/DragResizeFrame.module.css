@@ -1,0 +1,124 @@
+.frame {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.frameEnabled {
+  outline: 1px dashed transparent;
+  transition: outline-color 0.18s ease;
+}
+
+.frameEnabled:hover {
+  outline-color: rgba(34, 113, 177, 0.6);
+}
+
+.frameSelected {
+  outline: 0 !important;
+}
+
+.outline {
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  border: 2px solid #2271b1;
+  box-shadow: 0 0 0 4px rgba(34, 113, 177, 0.18);
+  z-index: 50;
+}
+
+.handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  background: #ffffff;
+  border: 2px solid #2271b1;
+  border-radius: 2px;
+  cursor: grab;
+  z-index: 51;
+  touch-action: none;
+}
+
+.handle:active {
+  cursor: grabbing;
+  background: #2271b1;
+}
+
+.handle_tl {
+  top: -7px;
+  left: -7px;
+  cursor: nwse-resize;
+}
+
+.handle_tr {
+  top: -7px;
+  right: -7px;
+  cursor: nesw-resize;
+}
+
+.handle_bl {
+  bottom: -7px;
+  left: -7px;
+  cursor: nesw-resize;
+}
+
+.handle_br {
+  bottom: -7px;
+  right: -7px;
+  cursor: nwse-resize;
+}
+
+.sizeHint {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2271b1;
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 51;
+}
+
+.moveHint {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.78);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 51;
+}
+
+.guideVertical,
+.guideHorizontal {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  background: #ff3366;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.guideVertical {
+  width: 1px;
+  transform: translateX(-0.5px);
+}
+
+.guideHorizontal {
+  height: 1px;
+  transform: translateY(-0.5px);
+}

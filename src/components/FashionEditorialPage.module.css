@@ -5,15 +5,121 @@
   overflow: hidden;
 }
 
-.hero {
-  position: relative;
-  min-height: calc(100vh - var(--header-height));
-  display: grid;
-  place-items: end center;
-  background: #111111;
-  isolation: isolate;
+.pageEditor {
+  background: #ffffff;
+  pointer-events: auto;
 }
 
+.themeLight {
+  background: #ffffff;
+  color: #111111;
+}
+
+.themeDark {
+  background: #0a0a0a;
+  color: #f5f5f5;
+}
+
+.themeWarm {
+  background: #f4f1ed;
+  color: #111111;
+}
+
+.alignLeft {
+  text-align: left;
+}
+
+.alignCenter {
+  text-align: center;
+}
+
+.alignRight {
+  text-align: right;
+}
+
+/* ---------- fade-in (with directional variants) ---------- */
+.fadeIn {
+  opacity: 0;
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.fadeInUp {
+  transform: translate3d(0, 32px, 0);
+}
+
+.fadeInDown {
+  transform: translate3d(0, -32px, 0);
+}
+
+.fadeInLeft {
+  transform: translate3d(-48px, 0, 0);
+}
+
+.fadeInRight {
+  transform: translate3d(48px, 0, 0);
+}
+
+.fadeInScale {
+  transform: scale(1.04);
+}
+
+.fadeInPlain {
+  transform: none;
+}
+
+.fadeInVisible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* ---------- ken-burns / breathing animations ---------- */
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes playPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 12px rgba(255, 255, 255, 0);
+  }
+}
+
+@keyframes lookbookActivePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fadeIn {
+    transition-duration: 0.01ms !important;
+  }
+  .fadeIn,
+  .fadeInUp,
+  .fadeInDown,
+  .fadeInLeft,
+  .fadeInRight,
+  .fadeInScale {
+    transform: none !important;
+  }
+}
+
+/* ---------- shared media frame ---------- */
 .mediaFrame {
   position: relative;
   overflow: hidden;
@@ -44,61 +150,6 @@
   text-transform: uppercase;
 }
 
-.heroMedia,
-.heroMedia .media,
-.heroMedia .mediaPlaceholder {
-  position: absolute;
-  inset: 0;
-}
-
-.heroShade {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    linear-gradient(to top, rgba(0, 0, 0, 0.58), transparent 45%),
-    radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.22) 100%);
-}
-
-.heroCopy {
-  position: relative;
-  z-index: 2;
-  width: min(620px, 92vw);
-  padding: 0 clamp(18px, 4vw, 44px) clamp(46px, 8vh, 84px);
-  color: #ffffff;
-  text-align: center;
-}
-
-.heroCopy h1,
-.statement h2,
-.featureCopy h2,
-.sectionHeader h2,
-.ctaCopy h2 {
-  font-family: var(--font-display);
-  letter-spacing: 0;
-}
-
-.heroCopy h1 {
-  color: #ffffff;
-  font-family: var(--font-body);
-  font-size: clamp(1.55rem, 3vw, 2.5rem);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  line-height: 1.05;
-  margin: 0 0 8px;
-  text-transform: uppercase;
-}
-
-.heroCopy p {
-  color: rgba(255, 255, 255, 0.86);
-  max-width: none;
-  font-size: clamp(0.86rem, 1.4vw, 1.22rem);
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
 .kicker {
   margin: 0 0 14px;
   color: inherit;
@@ -109,12 +160,88 @@
   text-transform: uppercase;
 }
 
-.heroCopy .kicker {
-  margin-bottom: 8px;
+.themeDark .kicker {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* ---------- HERO ---------- */
+.hero {
+  position: relative;
+  min-height: calc(100vh - var(--header-height));
+  display: grid;
+  place-items: end center;
+  background: #0a0a0a;
+  isolation: isolate;
   color: #ffffff;
-  font-size: clamp(1.35rem, 2.7vw, 2.3rem);
-  font-weight: 900;
-  letter-spacing: 0.1em;
+}
+
+.heroMediaWrap,
+.heroMedia,
+.heroMedia .media,
+.heroMedia .mediaPlaceholder {
+  position: absolute;
+  inset: 0;
+}
+
+/* Ken-burns subtle zoom on hero background image */
+.heroMediaWrap .media {
+  animation: kenBurns 22s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroMediaWrap .media {
+    animation: none;
+  }
+}
+
+.heroShade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.62), transparent 45%),
+    radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.22) 100%);
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 2;
+  width: min(680px, 92vw);
+  padding: 0 clamp(18px, 4vw, 44px) clamp(46px, 8vh, 84px);
+  color: #ffffff;
+  text-align: center;
+}
+
+.heroKicker {
+  margin: 0 0 14px;
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-body);
+  font-size: clamp(0.78rem, 1.1vw, 0.95rem);
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.heroCopy h1 {
+  margin: 0 0 14px;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 5.6vw, 5.6rem);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 0.98;
+  text-transform: none;
+}
+
+.heroSubtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-body);
+  font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1.5;
+  text-transform: uppercase;
 }
 
 .actionRow {
@@ -128,6 +255,7 @@
 .playButton,
 .textLink,
 .textLinkDark,
+.underlineLink,
 .ctaCopy a,
 .carouselControls button {
   appearance: none;
@@ -137,37 +265,74 @@
   cursor: pointer;
   font-family: var(--font-body);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  text-decoration: none;
 }
 
 .playButton {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-}
-
-.heroCopy .playButton {
-  min-height: 58px;
+  gap: 12px;
+  min-height: 56px;
   padding: 0 22px;
   background: #ffffff;
   color: #111111;
+  border: 1px solid #ffffff;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-.heroCopy .playIcon {
-  width: 18px;
-  height: 18px;
+.playButton:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.playButtonGhost {
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+}
+
+.playButtonCircle {
+  flex-direction: column;
+  gap: 14px;
+  background: transparent;
   border: 0;
+  color: inherit;
+  padding: 0;
+  min-height: 0;
+}
+
+.playButtonCircle .playIcon {
+  width: 78px;
+  height: 78px;
+  border: 1px solid currentColor;
+}
+
+.playButtonCircle .playIcon::before {
+  border-top-width: 12px;
+  border-bottom-width: 12px;
+  border-left-width: 18px;
+}
+
+.playButton:hover.playButtonCircle .playIcon {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .playIcon {
-  width: 34px;
-  height: 34px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
+  width: 18px;
+  height: 18px;
+  border: 0;
   display: inline-grid;
   place-items: center;
+  border-radius: 999px;
+}
+
+.playButton .playIcon {
+  width: 22px;
+  height: 22px;
 }
 
 .playIcon::before {
@@ -175,39 +340,48 @@
   width: 0;
   height: 0;
   margin-left: 2px;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-  border-left: 9px solid currentColor;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid currentColor;
 }
 
-.heroCopy .playIcon::before {
-  border-top-width: 7px;
-  border-bottom-width: 7px;
-  border-left-width: 10px;
+.playButton .playIcon::before {
+  border-top-width: 6px;
+  border-bottom-width: 6px;
+  border-left-width: 9px;
 }
 
 .textLink,
 .textLinkDark,
+.underlineLink,
 .ctaCopy a {
   display: inline-flex;
   width: fit-content;
   padding-bottom: 4px;
   border-bottom: 1px solid currentColor;
+  transition: opacity 0.2s ease;
+}
+
+.textLink:hover,
+.textLinkDark:hover,
+.underlineLink:hover,
+.ctaCopy a:hover {
+  opacity: 0.6;
 }
 
 .textLinkDark {
   color: #111111;
 }
 
+/* ---------- STATEMENT ---------- */
 .statement {
-  width: min(860px, 90vw);
+  width: min(900px, 90vw);
   margin: 0 auto;
   padding: clamp(72px, 10vw, 132px) 0;
-  text-align: center;
 }
 
 .statement h2 {
-  color: #111111;
+  font-family: var(--font-display);
   font-size: clamp(2rem, 5vw, 4.8rem);
   font-weight: 500;
   line-height: 1;
@@ -218,8 +392,58 @@
   max-width: 650px;
   margin: 28px auto 0;
   color: #555555;
+  font-size: 1rem;
+  line-height: 1.65;
 }
 
+.themeDark.statement > p:last-child {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ---------- TEXT INTRO ---------- */
+.textIntro {
+  width: min(820px, 90vw);
+  margin: 0 auto;
+  padding: clamp(72px, 11vw, 150px) 16px;
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+}
+
+.textIntro.alignLeft {
+  margin: 0 auto;
+  justify-items: flex-start;
+}
+
+.textIntro.alignRight {
+  justify-items: flex-end;
+}
+
+.textIntro h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.3vw, 2.8rem);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.textIntroBody {
+  margin: 0;
+  max-width: 640px;
+  color: #555555;
+  font-size: clamp(0.95rem, 1.05vw, 1.05rem);
+  line-height: 1.75;
+}
+
+.themeDark .textIntroBody {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.textIntro .underlineLink {
+  margin-top: 18px;
+}
+
+/* ---------- FEATURE ---------- */
 .feature {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
@@ -227,6 +451,20 @@
   min-height: 720px;
   border-top: 1px solid #dddddd;
   border-bottom: 1px solid #dddddd;
+}
+
+.themeDark.feature {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.featureMediaWrap {
+  display: flex;
+  align-items: stretch;
+  min-height: 620px;
+}
+
+.featureMediaWrap .mediaFrame {
+  width: 100%;
 }
 
 .featureMedia {
@@ -241,6 +479,7 @@
 }
 
 .featureCopy h2 {
+  font-family: var(--font-display);
   font-size: clamp(2.1rem, 5vw, 5.8rem);
   font-weight: 500;
   line-height: 0.95;
@@ -250,6 +489,12 @@
 .featureCopy p {
   max-width: 440px;
   color: #555555;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.themeDark .featureCopy p {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .featureCopy .lede {
@@ -257,11 +502,123 @@
   font-size: clamp(1rem, 1.6vw, 1.25rem);
 }
 
+.themeDark .featureCopy .lede {
+  color: rgba(255, 255, 255, 0.92);
+}
+
 .featureCopy .playButton {
-  color: #111111;
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
   margin-top: 28px;
 }
 
+.featureCopy .playButton:hover {
+  background: #333333;
+}
+
+/* ---------- LOOK FEATURE (single look full-bleed) ---------- */
+.lookFeature {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: clamp(40px, 7vw, 96px) 0 clamp(28px, 4vw, 56px);
+}
+
+.lookFeatureMediaWrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.lookFeatureMediaInner {
+  position: relative;
+  width: min(100%, 760px);
+  padding-inline: clamp(16px, 4vw, 32px);
+}
+
+.lookFeatureMedia {
+  aspect-ratio: 3 / 4;
+  background: #eee;
+}
+
+.lookFeatureBadge {
+  position: absolute;
+  top: clamp(20px, 3vw, 40px);
+  left: clamp(28px, 5vw, 72px);
+  z-index: 2;
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: clamp(0.78rem, 1vw, 0.92rem);
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.lookFeaturePlay {
+  position: absolute;
+  bottom: clamp(20px, 3vw, 40px);
+  left: clamp(28px, 5vw, 72px);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 0;
+  color: #111111;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease;
+}
+
+.lookFeaturePlay:hover {
+  background: #ffffff;
+}
+
+.lookFeaturePlay .playIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.lookFeaturePlay .playIcon::before {
+  border-top-width: 4px;
+  border-bottom-width: 4px;
+  border-left-width: 7px;
+}
+
+.lookFeatureCopy {
+  width: min(100%, 760px);
+  margin: 24px auto 0;
+  padding-inline: clamp(16px, 4vw, 32px);
+}
+
+.lookFeatureCopy h2 {
+  margin: 8px 0 6px;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.4vw, 2rem);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.1;
+}
+
+.lookFeatureCopy p {
+  margin: 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.themeDark.lookFeature .lookFeatureCopy p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ---------- BLOCK SHELL (used by mediaPair, carousel, projectGrid) ---------- */
 .blockShell {
   width: min(1440px, 100%);
   margin: 0 auto;
@@ -275,24 +632,214 @@
 }
 
 .sectionHeader h2 {
-  color: #111111;
+  margin: 0;
+  font-family: var(--font-display);
   font-size: clamp(2rem, 5vw, 5rem);
   font-weight: 500;
+  letter-spacing: 0;
   line-height: 0.98;
-  margin: 0;
 }
 
 .sectionHeader p {
   margin: 18px auto 0;
   color: #555555;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
+.themeDark .sectionHeader p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ---------- EDITORIAL DUO (asymmetric two-column with plus button + cta) ---------- */
+.editorialDuo {
+  position: relative;
+  width: 100%;
+  padding: clamp(48px, 6vw, 88px) 0 clamp(40px, 5vw, 72px);
+}
+
+.duoGrid {
+  position: relative;
+  width: min(1280px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: clamp(24px, 4vw, 64px);
+  padding-inline: clamp(16px, 4vw, 56px);
+  min-height: clamp(420px, 60vw, 720px);
+}
+
+.duoColumn {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.duoTop {
+  align-items: flex-start;
+}
+
+.duoCenter {
+  align-items: center;
+}
+
+.duoBottom {
+  align-items: flex-end;
+}
+
+.duoCard {
+  position: relative;
+  width: min(100%, 420px);
+}
+
+.duoCardInner {
+  position: relative;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.duoColumn:nth-child(1) .duoCard {
+  margin-left: clamp(0px, 5vw, 80px);
+}
+
+.duoColumn:nth-child(2) .duoCard {
+  margin-right: clamp(0px, 5vw, 80px);
+  margin-left: auto;
+}
+
+.duoCard .mediaFrame {
+  aspect-ratio: 3 / 4;
+}
+
+.duoPlus {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111111;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.duoPlus:hover {
+  background: #ffffff;
+  transform: scale(1.06);
+}
+
+.duoDots {
+  position: absolute;
+  left: 50%;
+  bottom: -28px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.duoDots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.duoDots .dotActive {
+  background: currentColor;
+}
+
+.duoCtaWrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.duoCta {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 220px;
+  min-height: 52px;
+  padding: 0 28px;
+  background: #ffffff;
+  color: #111111;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid #ffffff;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.duoCta:hover {
+  background: #111111;
+  color: #ffffff;
+}
+
+.themeDark .duoCta {
+  background: #ffffff;
+  color: #111111;
+}
+
+.duoCaption {
+  width: min(720px, 90vw);
+  margin: clamp(28px, 4vw, 48px) auto 0;
+  text-align: center;
+}
+
+.duoCaption span {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.duoCaption p {
+  margin: 0;
+  color: #555555;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.themeDark .duoCaption p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ---------- MEDIA PAIR ---------- */
 .mediaPair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(10px, 2vw, 28px);
 }
 
+/* ---------- ITEM CARD ---------- */
 .itemCard {
   position: relative;
   display: block;
@@ -300,7 +847,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #111111;
+  color: inherit;
   cursor: default;
   text-align: left;
   text-decoration: none;
@@ -311,8 +858,15 @@ a.itemCard {
   cursor: pointer;
 }
 
+.itemMediaInner {
+  position: relative;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .itemCard .media {
-  transition: transform 0.7s ease;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 button.itemCard:hover .media,
@@ -348,7 +902,7 @@ a.itemCard:hover .media {
 
 .itemCopy h3 {
   margin: 0;
-  color: #111111;
+  color: inherit;
   font-family: var(--font-display);
   font-size: clamp(1.35rem, 2vw, 2rem);
   font-weight: 500;
@@ -359,6 +913,36 @@ a.itemCard:hover .media {
   margin: 0;
   color: #666666;
   font-size: 0.86rem;
+}
+
+.themeDark .itemCopy p {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* caption overlay variant for lookbook */
+.itemCaptionOverlay {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 2;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.itemCaptionOverlay span {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.itemCaptionOverlay p {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .inlinePlay {
@@ -375,13 +959,14 @@ a.itemCard:hover .media {
   text-transform: uppercase;
 }
 
+/* ---------- CAROUSEL (centered single-slide) ---------- */
 .carousel {
   overflow: hidden;
 }
 
 .carouselTrack {
   display: flex;
-  transition: transform 0.5s ease;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .carouselSlide {
@@ -403,6 +988,15 @@ a.itemCard:hover .media {
   margin: 28px auto 0;
 }
 
+.carouselControls button {
+  border: 0;
+  background: transparent;
+}
+
+.carouselControls button:first-child {
+  justify-self: start;
+}
+
 .carouselControls button:last-child {
   justify-self: end;
 }
@@ -418,14 +1012,227 @@ a.itemCard:hover .media {
   width: 8px;
   height: 8px;
   padding: 0;
-  border: 1px solid #111111;
+  border: 1px solid currentColor;
   border-radius: 999px;
+  background: transparent;
 }
 
 .dots .dotActive {
-  background: #111111;
+  background: currentColor;
 }
 
+/* ---------- LOOKBOOK (full-bleed slideshow with peek) ---------- */
+.lookbook,
+.lookbookLandscape {
+  padding: clamp(56px, 8vw, 100px) 0;
+}
+
+.lookbookViewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.lookbookTrack {
+  display: flex;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  align-items: stretch;
+  will-change: transform;
+}
+
+.lookbookSlide {
+  flex: 0 0 52%;
+  padding: 0 12px;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  opacity: 0.5;
+  transform: scale(0.96);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.lookbookPeek .lookbookSlide {
+  flex: 0 0 33%;
+}
+
+.lookbookSlideLandscape {
+  flex: 0 0 78%;
+  padding: 0 12px;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  opacity: 0.5;
+  transform: scale(0.96);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.lookbookPeek .lookbookSlideLandscape {
+  flex: 0 0 56%;
+}
+
+.lookbookSlideActive {
+  opacity: 1;
+  transform: none;
+}
+
+.itemCardLookbook,
+.itemCardLookbookLandscape {
+  position: relative;
+  width: 100%;
+}
+
+.itemCardLookbook .mediaFrame {
+  aspect-ratio: 3 / 4;
+}
+
+.itemCardLookbookLandscape .mediaFrame {
+  aspect-ratio: 16 / 10;
+}
+
+.lookbookControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.lookbookArrow {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.lookbookArrow:hover {
+  background: #111111;
+  color: #ffffff;
+}
+
+.themeDark .lookbookArrow:hover {
+  background: #ffffff;
+  color: #111111;
+}
+
+.lookbookCount {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+}
+
+.lookbookCount strong {
+  font-weight: 800;
+}
+
+.lookbookCount span {
+  opacity: 0.5;
+}
+
+/* ---------- VIDEO TEASER ---------- */
+.videoTeaser {
+  width: 100%;
+}
+
+.videoTeaserInner {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  min-height: 420px;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.videoTeaserMedia,
+.videoTeaserMedia .media,
+.videoTeaserMedia .mediaPlaceholder {
+  position: absolute;
+  inset: 0;
+}
+
+.videoTeaserMedia .media {
+  animation: kenBurns 28s ease-in-out infinite alternate;
+}
+
+.videoTeaserPlayPulse {
+  display: inline-flex;
+}
+
+.videoTeaserPlayPulse .playIcon {
+  animation: playPulse 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .videoTeaserMedia .media,
+  .videoTeaserPlayPulse .playIcon {
+    animation: none;
+  }
+}
+
+.videoTeaserOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 32px;
+  color: #ffffff;
+  text-align: center;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.18) 0%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+}
+
+.videoTeaserKicker {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.videoTeaserOverlay h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3.6rem);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.videoTeaserOverlay p {
+  margin: 0;
+  max-width: 560px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 1rem;
+}
+
+/* ---------- PROJECT GRID ---------- */
 .projectGrid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -441,6 +1248,51 @@ a.itemCard:hover .media {
   grid-column: span 3;
 }
 
+/* ---------- WORLD GRID (CTA grid 2x2) ---------- */
+.worldGrid {
+  width: 100%;
+  padding: clamp(72px, 10vw, 132px) clamp(16px, 4vw, 56px);
+}
+
+.worldGridList {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 28px);
+}
+
+.itemCardWorld {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 18px;
+}
+
+.itemCardWorld .mediaFrame {
+  aspect-ratio: 16 / 11;
+}
+
+.itemCardWorld .itemCopy {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.itemCardWorld h3 {
+  font-size: clamp(1.2rem, 1.8vw, 1.8rem);
+}
+
+.worldGridCta {
+  width: min(1280px, 100%);
+  margin: clamp(36px, 5vw, 60px) auto 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- REVIEWS ---------- */
 .reviewsSection {
   background: #f4f1ed;
   padding: clamp(64px, 9vw, 128px) clamp(16px, 4vw, 56px);
@@ -497,12 +1349,34 @@ a.itemCard:hover .media {
   font-size: 0.82rem;
 }
 
+/* ---------- SPACER ---------- */
+.spacer {
+  width: 100%;
+}
+
+.spacerSm {
+  height: clamp(24px, 3vw, 40px);
+}
+
+.spacerMd {
+  height: clamp(48px, 6vw, 80px);
+}
+
+.spacerLg {
+  height: clamp(72px, 10vw, 140px);
+}
+
+.spacerXl {
+  height: clamp(120px, 14vw, 220px);
+}
+
+/* ---------- CTA ---------- */
 .ctaBlock {
   position: relative;
   min-height: 620px;
   display: grid;
   place-items: center;
-  background: #111111;
+  background: #0a0a0a;
   color: #ffffff;
   isolation: isolate;
 }
@@ -512,6 +1386,16 @@ a.itemCard:hover .media {
 .ctaMedia .mediaPlaceholder {
   position: absolute;
   inset: 0;
+}
+
+.ctaMedia .media {
+  animation: kenBurns 28s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctaMedia .media {
+    animation: none;
+  }
 }
 
 .ctaMedia::after {
@@ -530,11 +1414,13 @@ a.itemCard:hover .media {
 }
 
 .ctaCopy h2 {
+  margin: 0;
   color: #ffffff;
+  font-family: var(--font-display);
   font-size: clamp(2.3rem, 6vw, 6.4rem);
   font-weight: 500;
+  letter-spacing: 0;
   line-height: 0.95;
-  margin: 0;
 }
 
 .ctaCopy p {
@@ -542,6 +1428,74 @@ a.itemCard:hover .media {
   color: rgba(255, 255, 255, 0.86);
 }
 
+/* ---------- EDITOR MODE WRAPPER ---------- */
+.editorBlockWrap {
+  position: relative;
+  cursor: pointer;
+  outline: 0;
+  transition: box-shadow 0.18s ease;
+}
+
+.editorBlockWrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 2px solid transparent;
+  transition: border-color 0.18s ease;
+  z-index: 5;
+}
+
+.editorBlockWrap:hover::after {
+  border-color: rgba(34, 113, 177, 0.45);
+}
+
+.editorBlockSelected::after {
+  border-color: #2271b1 !important;
+  box-shadow: 0 0 0 4px rgba(34, 113, 177, 0.22);
+}
+
+.editorBlockBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 6;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #2271b1;
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  pointer-events: none;
+  max-width: calc(100% - 20px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editorBlockBadge strong {
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.04em;
+  opacity: 0.92;
+}
+
+.editorBlockWrap:hover .editorBlockBadge,
+.editorBlockSelected .editorBlockBadge {
+  display: inline-flex;
+}
+
+/* in editor we want videos paused so admin sees the poster */
+.pageEditor video {
+  pointer-events: none;
+}
+
+/* ---------- responsive ---------- */
 @media (max-width: 900px) {
   .hero {
     min-height: calc(90vh - var(--header-height));
@@ -564,6 +1518,14 @@ a.itemCard:hover .media {
     padding: 0;
   }
 
+  .lookbookPeek .lookbookSlide {
+    flex: 0 0 86%;
+  }
+
+  .lookbookPeek .lookbookSlideLandscape {
+    flex: 0 0 92%;
+  }
+
   .projectGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -574,12 +1536,21 @@ a.itemCard:hover .media {
     grid-column: span 1;
   }
 
+  .worldGridList {
+    grid-template-columns: 1fr;
+  }
+
   .reviewGrid {
     grid-template-columns: 1fr;
   }
 
   .reviewCard {
     min-height: 260px;
+  }
+
+  .videoTeaserInner {
+    aspect-ratio: 16 / 11;
+    min-height: 320px;
   }
 }
 
@@ -588,7 +1559,8 @@ a.itemCard:hover .media {
     padding: 34px 18px;
   }
 
-  .statement {
+  .statement,
+  .textIntro {
     padding-inline: 18px;
   }
 
@@ -596,7 +1568,8 @@ a.itemCard:hover .media {
     padding: 36px 18px;
   }
 
-  .blockShell {
+  .blockShell,
+  .worldGrid {
     padding-inline: 12px;
   }
 
@@ -607,5 +1580,16 @@ a.itemCard:hover .media {
   .carouselControls {
     grid-template-columns: auto 1fr auto;
     gap: 12px;
+  }
+
+  .lookFeatureBadge {
+    top: 16px;
+    left: 24px;
+  }
+
+  .lookFeaturePlay {
+    bottom: 16px;
+    left: 24px;
+    padding: 10px 14px;
   }
 }
