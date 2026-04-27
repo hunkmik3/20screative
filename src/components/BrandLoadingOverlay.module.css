@@ -1,0 +1,171 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  background: #0a0a0a;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.overlayExit {
+  pointer-events: none;
+  animation: overlayExit 0.42s linear forwards;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 22px;
+  width: min(380px, 80vw);
+  text-align: center;
+  padding: 0 16px;
+  transform: translateZ(0);
+}
+
+.logoStage {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto -14px;
+  contain: layout paint;
+  animation:
+    logoBreathe 2.6s cubic-bezier(0.45, 0, 0.2, 1) infinite,
+    logoFocus 4.8s ease-in-out infinite;
+  transform-origin: center;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.logo {
+  display: block;
+  width: clamp(160px, 24vw, 240px);
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
+  clip-path: inset(12% 12% 12% 12%);
+  transform: scale(1.32);
+  transform-origin: center;
+  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.16));
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.contentExit .logoStage {
+  animation: logoPortal 0.42s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.contentExit .logo {
+  filter: none;
+}
+
+.contentExit .tagline,
+.contentExit .barTrack,
+.contentExit .text {
+  animation: loaderDetailsExit 0.22s ease forwards;
+}
+
+.tagline {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.barTrack {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.barFill {
+  height: 100%;
+  background: #ffffff;
+  transform-origin: left center;
+  transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.text {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes logoBreathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.035);
+  }
+}
+
+@keyframes logoFocus {
+  0%, 100% {
+    filter: saturate(1);
+  }
+  50% {
+    filter: saturate(1.2) contrast(1.08);
+  }
+}
+
+@keyframes logoPortal {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  58% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(3.8);
+  }
+  82% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(8.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(8.5);
+  }
+}
+
+@keyframes loaderDetailsExit {
+  to {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes overlayExit {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logoStage,
+  .contentExit .logoStage,
+  .contentExit .tagline,
+  .contentExit .barTrack,
+  .contentExit .text {
+    animation: none;
+  }
+
+  .overlayExit {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

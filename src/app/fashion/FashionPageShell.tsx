@@ -1,7 +1,6 @@
 "use client";
-
-/* eslint-disable @next/next/no-img-element */
 import { useEffect, useRef, useState } from "react";
+import BrandLoadingOverlay from "@/components/BrandLoadingOverlay";
 import FashionEditorialPage from "@/components/FashionEditorialPage";
 import type { FashionPageContent } from "@/data/fashionPage";
 import styles from "./FashionPageShell.module.css";
@@ -91,34 +90,12 @@ export default function FashionPageShell({
       )}
 
       {heroVideoUrl && showOverlay && (
-        <div
-          className={`${styles.overlay} ${isReady ? styles.overlayExit : ""}`}
-          aria-hidden={isReady}
-          onAnimationEnd={(event) => {
-            if (event.currentTarget !== event.target || !isReady) return;
-            setShowOverlay(false);
-          }}
-        >
-          <div
-            className={`${styles.content} ${isReady ? styles.contentExit : ""}`}
-          >
-            <div className={styles.logoStage}>
-              <img
-                src="/logo-white.png"
-                alt="20sCreative"
-                className={styles.logo}
-              />
-            </div>
-            <p className={styles.tagline}>Creative Production</p>
-            <div className={styles.barTrack}>
-              <div
-                className={styles.barFill}
-                style={{ width: `${Math.round(progress * 100)}%` }}
-              />
-            </div>
-            <p className={styles.text}>Loading…</p>
-          </div>
-        </div>
+        <BrandLoadingOverlay
+          progress={progress}
+          exiting={isReady}
+          text="Loading..."
+          onExited={() => setShowOverlay(false)}
+        />
       )}
 
       <FashionEditorialPage content={content} />

@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import RouteTransitionLoader from "@/components/RouteTransitionLoader";
 
 const ebGaramond = EB_Garamond({
   subsets: ["latin"],
@@ -75,6 +76,7 @@ export default function RootLayout({
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: resetScrollOnReloadScript }}
         />
+        <RouteTransitionLoader />
         <Header />
         <main>{children}</main>
         <Footer />
