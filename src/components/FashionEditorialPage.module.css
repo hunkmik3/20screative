@@ -1172,6 +1172,7 @@ a.itemCard:hover .media {
   width: 100%;
   overflow: hidden;
   overscroll-behavior-x: contain;
+  touch-action: pan-y;
 }
 
 .lookbookTrack {

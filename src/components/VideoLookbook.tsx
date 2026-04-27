@@ -70,9 +70,13 @@ export default function VideoLookbook({
   const [active, setActive] = useState(0);
   const [canPlayPreviews, setCanPlayPreviews] = useState(false);
   const [autoplayStopped, setAutoplayStopped] = useState(false);
+  const [dragOffsetPx, setDragOffsetPx] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const wheelRemainderRef = useRef(0);
   const lastWheelStepAtRef = useRef(0);
+  const lastSwipeStepAtRef = useRef(0);
   const wheelResetTimerRef = useRef<number | null>(null);
   const touchStartXRef = useRef(0);
   const touchStartYRef = useRef(0);
@@ -181,15 +185,17 @@ export default function VideoLookbook({
 
     wheelRemainderRef.current += horizontalDelta;
 
-    const threshold = 78;
+    const threshold = 120;
     if (Math.abs(wheelRemainderRef.current) < threshold) return;
 
     const now = window.performance.now();
-    if (now - lastWheelStepAtRef.current < 150) return;
+    if (now - lastWheelStepAtRef.current < 240) return;
+    if (now - lastSwipeStepAtRef.current < 380) return;
 
     const steps = wheelRemainderRef.current > 0 ? 1 : -1;
     wheelRemainderRef.current -= steps * threshold;
     lastWheelStepAtRef.current = now;
+    lastSwipeStepAtRef.current = now;
     setAutoplayStopped(true);
     setActive((prev) => modIndex(prev + steps, N));
   };
@@ -202,6 +208,8 @@ export default function VideoLookbook({
     touchStartYRef.current = touch.clientY;
     touchDeltaXRef.current = 0;
     touchGestureRef.current = "none";
+    setDragOffsetPx(0);
+    setIsDragging(false);
   };
 
   const handleStageTouchMove = (event: ReactTouchEvent<HTMLDivElement>) => {
@@ -222,20 +230,38 @@ export default function VideoLookbook({
     }
 
     if (touchGestureRef.current === "horizontal") {
+      const stageWidth = stageRef.current?.clientWidth ?? window.innerWidth ?? 0;
+      const maxDrag = stageWidth * 0.38;
+      const nextOffset = Math.max(-maxDrag, Math.min(maxDrag, deltaX));
+      setIsDragging(true);
+      setDragOffsetPx(nextOffset);
       event.preventDefault();
     }
   };
 
   const handleStageTouchEnd = () => {
     if (N < 2) return;
+    setIsDragging(false);
     if (touchGestureRef.current !== "horizontal") return;
 
-    const threshold = 36;
+    const stageWidth = stageRef.current?.clientWidth ?? window.innerWidth ?? 0;
+    const threshold = Math.max(58, stageWidth * 0.17);
     const deltaX = touchDeltaXRef.current;
-    if (Math.abs(deltaX) < threshold) return;
+    if (Math.abs(deltaX) < threshold) {
+      setDragOffsetPx(0);
+      return;
+    }
+
+    const now = window.performance.now();
+    if (now - lastSwipeStepAtRef.current < 380) {
+      setDragOffsetPx(0);
+      return;
+    }
 
     setAutoplayStopped(true);
-    suppressCardClickUntilRef.current = window.performance.now() + 260;
+    lastSwipeStepAtRef.current = now;
+    suppressCardClickUntilRef.current = now + 320;
+    setDragOffsetPx(0);
     if (deltaX > 0) {
       handlePrev();
       return;
@@ -263,6 +289,7 @@ export default function VideoLookbook({
       </header>
 
       <div
+        ref={stageRef}
         className={styles.stage}
         onWheel={handleStageWheel}
         onTouchStart={handleStageTouchStart}
@@ -281,7 +308,13 @@ export default function VideoLookbook({
           </button>
         )}
 
-        <div className={styles.cards}>
+        <div
+          className={styles.cards}
+          style={{
+            transform: `translateX(${dragOffsetPx}px)`,
+            transition: isDragging ? "none" : "transform 0.45s ease-out",
+          }}
+        >
           {slots.map(({ video, role }) => {
             const isCenter = role === "center";
             const hasVideoUrl = hasAsset(video.videoUrl);

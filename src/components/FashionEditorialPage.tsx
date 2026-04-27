@@ -269,12 +269,15 @@ function LookbookSection({
   );
   const [animate, setAnimate] = useState(true);
   const [autoplayStopped, setAutoplayStopped] = useState(false);
+  const [dragOffsetPx, setDragOffsetPx] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [trackTranslatePx, setTrackTranslatePx] = useState(0);
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const lastSyncedActiveRef = useRef(activeIndex);
   const wheelRemainderRef = useRef(0);
   const lastWheelStepAtRef = useRef(0);
+  const lastSwipeStepAtRef = useRef(0);
   const wheelResetTimerRef = useRef<number | null>(null);
   const touchStartXRef = useRef(0);
   const touchStartYRef = useRef(0);
@@ -421,15 +424,17 @@ function LookbookSection({
 
     wheelRemainderRef.current += horizontalDelta;
 
-    const threshold = 78;
+    const threshold = 120;
     if (Math.abs(wheelRemainderRef.current) < threshold) return;
 
     const now = window.performance.now();
-    if (now - lastWheelStepAtRef.current < 150) return;
+    if (now - lastWheelStepAtRef.current < 240) return;
+    if (now - lastSwipeStepAtRef.current < 380) return;
 
     const steps = wheelRemainderRef.current > 0 ? 1 : -1;
     wheelRemainderRef.current -= steps * threshold;
     lastWheelStepAtRef.current = now;
+    lastSwipeStepAtRef.current = now;
     setAutoplayStopped(true);
     setAnimate(true);
     setDisplayIndex((prev) => {
@@ -476,6 +481,8 @@ function LookbookSection({
     touchStartYRef.current = touch.clientY;
     touchDeltaXRef.current = 0;
     touchGestureRef.current = "none";
+    setDragOffsetPx(0);
+    setIsDragging(false);
   };
 
   const handleViewportTouchMove = (event: ReactTouchEvent<HTMLDivElement>) => {
@@ -496,20 +503,42 @@ function LookbookSection({
     }
 
     if (touchGestureRef.current === "horizontal") {
+      const viewportWidth = viewportRef.current?.clientWidth ?? window.innerWidth ?? 0;
+      const maxDrag = viewportWidth * 0.38;
+      const nextOffset = Math.max(-maxDrag, Math.min(maxDrag, deltaX));
+      setIsDragging(true);
+      setDragOffsetPx(nextOffset);
       event.preventDefault();
     }
   };
 
   const handleViewportTouchEnd = () => {
     if (editorMode || N < 2) return;
+    setIsDragging(false);
     if (touchGestureRef.current !== "horizontal") return;
 
-    const threshold = 36;
+    const viewportWidth =
+      viewportRef.current?.clientWidth ?? window.innerWidth ?? 0;
+    const threshold = Math.max(58, viewportWidth * 0.17);
     const deltaX = touchDeltaXRef.current;
-    if (Math.abs(deltaX) < threshold) return;
+    if (Math.abs(deltaX) < threshold) {
+      setAnimate(true);
+      setDragOffsetPx(0);
+      return;
+    }
+
+    const now = window.performance.now();
+    if (now - lastSwipeStepAtRef.current < 380) {
+      setAnimate(true);
+      setDragOffsetPx(0);
+      return;
+    }
 
     setAutoplayStopped(true);
-    suppressClickUntilRef.current = window.performance.now() + 260;
+    lastSwipeStepAtRef.current = now;
+    suppressClickUntilRef.current = now + 320;
+    setAnimate(true);
+    setDragOffsetPx(0);
 
     if (deltaX > 0) {
       goPrev();
@@ -549,8 +578,8 @@ function LookbookSection({
           ref={trackRef}
           className={styles.lookbookTrack}
           style={{
-            transform: `translateX(${trackTranslatePx}px)`,
-            transition: animate ? undefined : "none",
+            transform: `translateX(${trackTranslatePx + dragOffsetPx}px)`,
+            transition: animate && !isDragging ? undefined : "none",
           }}
           onTransitionEnd={snapAfterTransition}
         >
