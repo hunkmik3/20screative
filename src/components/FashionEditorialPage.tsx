@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type TouchEvent as ReactTouchEvent,
   type ReactNode,
   type WheelEvent as ReactWheelEvent,
 } from "react";
@@ -267,6 +268,7 @@ function LookbookSection({
     useLoop ? activeIndex + 1 : activeIndex,
   );
   const [animate, setAnimate] = useState(true);
+  const [autoplayStopped, setAutoplayStopped] = useState(false);
   const [trackTranslatePx, setTrackTranslatePx] = useState(0);
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -274,6 +276,11 @@ function LookbookSection({
   const wheelRemainderRef = useRef(0);
   const lastWheelStepAtRef = useRef(0);
   const wheelResetTimerRef = useRef<number | null>(null);
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+  const touchDeltaXRef = useRef(0);
+  const touchGestureRef = useRef<"none" | "horizontal" | "vertical">("none");
+  const suppressClickUntilRef = useRef(0);
 
   // Sync external activeIndex → displayIndex (e.g. autoplay tick from outside,
   // or other code paths setting active). Only when value actually differs.
@@ -291,13 +298,13 @@ function LookbookSection({
   // boundary snap (clone → real) doesn't shorten the first slide's duration.
   // Off only in editor mode.
   useEffect(() => {
-    if (N < 2 || editorMode) return;
+    if (N < 2 || editorMode || autoplayStopped) return;
     const timer = window.setTimeout(() => {
       setAnimate(true);
       setDisplayIndex((prev) => prev + 1);
     }, 3000);
     return () => window.clearTimeout(timer);
-  }, [N, editorMode, displayIndex]);
+  }, [N, editorMode, displayIndex, autoplayStopped]);
 
   useLayoutEffect(() => {
     const viewport = viewportRef.current;
@@ -423,6 +430,7 @@ function LookbookSection({
     const steps = wheelRemainderRef.current > 0 ? 1 : -1;
     wheelRemainderRef.current -= steps * threshold;
     lastWheelStepAtRef.current = now;
+    setAutoplayStopped(true);
     setAnimate(true);
     setDisplayIndex((prev) => {
       if ((prev <= 0 && steps < 0) || (prev >= N + 1 && steps > 0)) {
@@ -442,6 +450,7 @@ function LookbookSection({
 
   const handleSlideClick = (dispIdx: number) => {
     if (editorMode) return;
+    if (window.performance.now() < suppressClickUntilRef.current) return;
     const realIdx = realIndexFromDisplay(dispIdx);
     const realItem = items[realIdx];
     const isActiveSlot = useLoop
@@ -457,6 +466,56 @@ function LookbookSection({
     } else {
       onSetIndex(dispIdx);
     }
+  };
+
+  const handleViewportTouchStart = (event: ReactTouchEvent<HTMLDivElement>) => {
+    if (editorMode || N < 2) return;
+    const touch = event.touches[0];
+    if (!touch) return;
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+    touchDeltaXRef.current = 0;
+    touchGestureRef.current = "none";
+  };
+
+  const handleViewportTouchMove = (event: ReactTouchEvent<HTMLDivElement>) => {
+    if (editorMode || N < 2) return;
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    const deltaX = touch.clientX - touchStartXRef.current;
+    const deltaY = touch.clientY - touchStartYRef.current;
+    touchDeltaXRef.current = deltaX;
+
+    if (touchGestureRef.current === "none") {
+      if (Math.abs(deltaX) > Math.abs(deltaY) + 8) {
+        touchGestureRef.current = "horizontal";
+      } else if (Math.abs(deltaY) > Math.abs(deltaX) + 8) {
+        touchGestureRef.current = "vertical";
+      }
+    }
+
+    if (touchGestureRef.current === "horizontal") {
+      event.preventDefault();
+    }
+  };
+
+  const handleViewportTouchEnd = () => {
+    if (editorMode || N < 2) return;
+    if (touchGestureRef.current !== "horizontal") return;
+
+    const threshold = 36;
+    const deltaX = touchDeltaXRef.current;
+    if (Math.abs(deltaX) < threshold) return;
+
+    setAutoplayStopped(true);
+    suppressClickUntilRef.current = window.performance.now() + 260;
+
+    if (deltaX > 0) {
+      goPrev();
+      return;
+    }
+    goNext();
   };
 
   // Counter shows real position
@@ -481,6 +540,10 @@ function LookbookSection({
           showPeek ? styles.lookbookPeek : ""
         }`}
         onWheel={handleViewportWheel}
+        onTouchStart={handleViewportTouchStart}
+        onTouchMove={handleViewportTouchMove}
+        onTouchEnd={handleViewportTouchEnd}
+        onTouchCancel={handleViewportTouchEnd}
       >
         <div
           ref={trackRef}
@@ -802,10 +865,14 @@ export default function FashionEditorialPage({
     </section>
   );
 
-  const renderTextIntro = (block: FashionBlock) => (
-    <section
-      className={`${styles.textIntro} ${themeClass(block.theme)} ${alignClass(block.align)}`}
-    >
+  const renderTextIntro = (block: FashionBlock) => {
+    const ctaHref = block.ctaHref || "#";
+    const isExternalCtaHref = /^https?:\/\//i.test(ctaHref);
+
+    return (
+      <section
+        className={`${styles.textIntro} ${themeClass(block.theme)} ${alignClass(block.align)}`}
+      >
       {block.kicker && (
         <FadeIn variant="up" duration={900}>
           <RevealText as="p" className={styles.kicker} text={block.kicker} />
@@ -823,7 +890,9 @@ export default function FashionEditorialPage({
         <FadeIn variant="up" delay={400} duration={900}>
           <a
             className={styles.underlineLink}
-            href={block.ctaHref || "#"}
+            href={ctaHref}
+            target={isExternalCtaHref ? "_blank" : undefined}
+            rel={isExternalCtaHref ? "noopener noreferrer" : undefined}
             onClick={(event) => {
               if (editorMode) event.preventDefault();
             }}
@@ -832,8 +901,9 @@ export default function FashionEditorialPage({
           </a>
         </FadeIn>
       )}
-    </section>
-  );
+      </section>
+    );
+  };
 
   const renderFeature = (block: FashionBlock) => {
     const mediaStyle = editorMode
@@ -1328,38 +1398,60 @@ export default function FashionEditorialPage({
     />
   );
 
-  const renderCta = (block: FashionBlock) => (
-    <section className={`${styles.ctaBlock} ${themeClass(block.theme)}`}>
-      <MediaFrame
-        mediaUrl={block.mediaUrl}
-        mediaKind={block.mediaKind}
-        posterUrl={block.posterUrl}
-        streamUid={block.streamUid}
-        title={block.title}
-        className={styles.ctaMedia}
-      />
-      <div className={styles.ctaCopy}>
-        {block.kicker && (
-          <FadeIn variant="up" duration={1000}>
-            <RevealText as="p" className={styles.kicker} text={block.kicker} />
+  const renderCta = (block: FashionBlock) => {
+    const ctaVideoUrl =
+      block.videoUrl?.trim() ||
+      (block.mediaKind === "video" ? block.mediaUrl?.trim() : "");
+    const hasCtaVideo = Boolean(ctaVideoUrl || block.streamUid?.trim());
+
+    return (
+      <section className={`${styles.ctaBlock} ${themeClass(block.theme)}`}>
+        <MediaFrame
+          mediaUrl={block.mediaUrl}
+          mediaKind={block.mediaKind}
+          posterUrl={block.posterUrl}
+          streamUid={block.streamUid}
+          title={block.title}
+          className={styles.ctaMedia}
+        />
+        <div className={styles.ctaCopy}>
+          {block.kicker && (
+            <FadeIn variant="up" duration={1000}>
+              <RevealText as="p" className={styles.kicker} text={block.kicker} />
+            </FadeIn>
+          )}
+          <FadeIn variant="up" delay={120} duration={1100}>
+            <RevealText as="h2" text={block.title} staggerMs={54} />
           </FadeIn>
-        )}
-        <FadeIn variant="up" delay={120} duration={1100}>
-          <RevealText as="h2" text={block.title} staggerMs={54} />
-        </FadeIn>
-        {block.subtitle && (
-          <FadeIn variant="up" delay={250} duration={1000}>
-            <p>{block.subtitle}</p>
-          </FadeIn>
-        )}
-        {block.ctaLabel && block.ctaHref && (
-          <FadeIn variant="scale" delay={400} duration={900}>
-            <a href={block.ctaHref}>{block.ctaLabel}</a>
-          </FadeIn>
-        )}
-      </div>
-    </section>
-  );
+          {block.subtitle && (
+            <FadeIn variant="up" delay={250} duration={1000}>
+              <p>{block.subtitle}</p>
+            </FadeIn>
+          )}
+          {block.ctaLabel && hasCtaVideo && (
+            <FadeIn variant="scale" delay={400} duration={900}>
+              <button
+                type="button"
+                className={styles.ctaAction}
+                onClick={() =>
+                  openVideo(block.title, ctaVideoUrl || undefined, block.streamUid)
+                }
+              >
+                {block.ctaLabel}
+              </button>
+            </FadeIn>
+          )}
+          {block.ctaLabel && !hasCtaVideo && block.ctaHref && (
+            <FadeIn variant="scale" delay={400} duration={900}>
+              <a href={block.ctaHref} className={styles.ctaAction}>
+                {block.ctaLabel}
+              </a>
+            </FadeIn>
+          )}
+        </div>
+      </section>
+    );
+  };
 
   const blockRendererFor = (block: FashionBlock) => {
     switch (block.type) {

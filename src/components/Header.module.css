@@ -16,6 +16,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
     max-width: 100%;
 }
 
@@ -69,6 +70,14 @@
 .logo:hover {
     opacity: 0.7;
     color: #000000;
+}
+
+.logoText {
+    display: inline;
+}
+
+.logoImage {
+    display: none;
 }
 
 /* Right Section */
@@ -221,6 +230,7 @@
     }
 
     .container {
+        justify-content: flex-end;
         min-height: 44px;
     }
 
@@ -237,12 +247,27 @@
     }
 
     .logo {
-        position: relative;
-        left: auto;
-        transform: none;
-        font-size: clamp(24px, 7vw, 30px);
-        max-width: calc(100vw - 96px);
-        overflow: hidden;
-        text-overflow: ellipsis;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: min(250px, calc(100vw - 108px));
+        height: 77px;
+        transform: translate(-50%, -50%);
+        overflow: visible;
+    }
+
+    .logoText {
+        display: none;
+    }
+
+    .logoImage {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 77px;
+        object-fit: contain;
     }
 }

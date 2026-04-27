@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import styles from "./Header.module.css";
@@ -82,8 +83,16 @@ export default function Header() {
                     </nav>
 
                     {/* Center: Logo */}
-                    <Link href="/" className={styles.logo}>
-                        20sCREATIVE
+                    <Link href="/" className={styles.logo} aria-label="20sCreative home">
+                        <span className={styles.logoText}>20sCREATIVE</span>
+                        <Image
+                            className={styles.logoImage}
+                            src="/logo20screative-01.png"
+                            alt=""
+                            width={8334}
+                            height={8334}
+                            priority
+                        />
                     </Link>
 
                     {/* Right: Social + Contact */}

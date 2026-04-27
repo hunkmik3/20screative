@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type TouchEvent as ReactTouchEvent,
   type WheelEvent as ReactWheelEvent,
 } from "react";
 import Image from "next/image";
@@ -68,20 +69,26 @@ export default function VideoLookbook({
   const N = videos.length;
   const [active, setActive] = useState(0);
   const [canPlayPreviews, setCanPlayPreviews] = useState(false);
+  const [autoplayStopped, setAutoplayStopped] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const wheelRemainderRef = useRef(0);
   const lastWheelStepAtRef = useRef(0);
   const wheelResetTimerRef = useRef<number | null>(null);
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+  const touchDeltaXRef = useRef(0);
+  const touchGestureRef = useRef<"none" | "horizontal" | "vertical">("none");
+  const suppressCardClickUntilRef = useRef(0);
 
   // Auto-advance
   useEffect(() => {
-    if (!autoplay) return;
+    if (!autoplay || autoplayStopped) return;
     if (N < 2) return;
     const timer = window.setTimeout(() => {
       setActive((prev) => modIndex(prev + 1, N));
     }, AUTO_INTERVAL_MS);
     return () => window.clearTimeout(timer);
-  }, [active, autoplay, N]);
+  }, [active, autoplay, N, autoplayStopped]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -183,7 +190,57 @@ export default function VideoLookbook({
     const steps = wheelRemainderRef.current > 0 ? 1 : -1;
     wheelRemainderRef.current -= steps * threshold;
     lastWheelStepAtRef.current = now;
+    setAutoplayStopped(true);
     setActive((prev) => modIndex(prev + steps, N));
+  };
+
+  const handleStageTouchStart = (event: ReactTouchEvent<HTMLDivElement>) => {
+    if (N < 2) return;
+    const touch = event.touches[0];
+    if (!touch) return;
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+    touchDeltaXRef.current = 0;
+    touchGestureRef.current = "none";
+  };
+
+  const handleStageTouchMove = (event: ReactTouchEvent<HTMLDivElement>) => {
+    if (N < 2) return;
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    const deltaX = touch.clientX - touchStartXRef.current;
+    const deltaY = touch.clientY - touchStartYRef.current;
+    touchDeltaXRef.current = deltaX;
+
+    if (touchGestureRef.current === "none") {
+      if (Math.abs(deltaX) > Math.abs(deltaY) + 8) {
+        touchGestureRef.current = "horizontal";
+      } else if (Math.abs(deltaY) > Math.abs(deltaX) + 8) {
+        touchGestureRef.current = "vertical";
+      }
+    }
+
+    if (touchGestureRef.current === "horizontal") {
+      event.preventDefault();
+    }
+  };
+
+  const handleStageTouchEnd = () => {
+    if (N < 2) return;
+    if (touchGestureRef.current !== "horizontal") return;
+
+    const threshold = 36;
+    const deltaX = touchDeltaXRef.current;
+    if (Math.abs(deltaX) < threshold) return;
+
+    setAutoplayStopped(true);
+    suppressCardClickUntilRef.current = window.performance.now() + 260;
+    if (deltaX > 0) {
+      handlePrev();
+      return;
+    }
+    handleNext();
   };
 
   return (
@@ -205,7 +262,14 @@ export default function VideoLookbook({
         {description && <p className={styles.description}>{description}</p>}
       </header>
 
-      <div className={styles.stage} onWheel={handleStageWheel}>
+      <div
+        className={styles.stage}
+        onWheel={handleStageWheel}
+        onTouchStart={handleStageTouchStart}
+        onTouchMove={handleStageTouchMove}
+        onTouchEnd={handleStageTouchEnd}
+        onTouchCancel={handleStageTouchEnd}
+      >
         {N > 1 && (
           <button
             type="button"
@@ -248,6 +312,9 @@ export default function VideoLookbook({
                       ? styles.cardRight
                       : styles.cardCenter;
             const handleClick = () => {
+              if (window.performance.now() < suppressCardClickUntilRef.current) {
+                return;
+              }
               if (openOnCardClick && isPlayable) {
                 onPlay?.(video);
               } else if (isCenter) {

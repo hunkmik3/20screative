@@ -420,9 +420,11 @@ iframe.media {
 .textLink,
 .textLinkDark,
 .underlineLink,
-.ctaCopy a {
+.ctaAction {
   display: inline-flex;
   width: fit-content;
+  align-items: center;
+  justify-content: center;
   padding-bottom: 4px;
   border-bottom: 1px solid currentColor;
   transition: opacity 0.2s ease;
@@ -431,8 +433,24 @@ iframe.media {
 .textLink:hover,
 .textLinkDark:hover,
 .underlineLink:hover,
-.ctaCopy a:hover {
+.ctaAction:hover {
   opacity: 0.6;
+}
+
+.ctaAction {
+  color: inherit;
+  background: transparent;
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: currentColor;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  text-decoration: none;
 }
 
 .textLinkDark {
@@ -1301,7 +1319,7 @@ a.itemCard:hover .media {
 }
 
 .videoTeaserPlayPulse .playIcon {
-  animation: playPulse 2.6s ease-in-out infinite;
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1955,6 +1973,10 @@ a.itemCard:hover .media {
 
   .videoTeaserOverlay {
     padding: 20px;
+  }
+
+  .videoTeaserPlayPulse {
+    transform: translateY(25%);
   }
 
   .videoTeaserOverlay h2 {

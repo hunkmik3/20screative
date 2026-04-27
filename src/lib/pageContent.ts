@@ -15,6 +15,8 @@ import { getR2Bucket, getR2Client } from "@/lib/r2";
 
 const contentKeyBySlug = (slug: EditablePageSlug) =>
   `content/${slug}-page.json`;
+const fashionIntroYoutubePlaylistUrl =
+  "https://youtube.com/playlist?list=PLF0FMJSdi0xiOQHy4eLwZa0cz4T6HpIin&si=KTdqY1tk2gbf-KgC";
 
 async function bodyToText(body: unknown): Promise<string> {
   if (
@@ -33,18 +35,34 @@ function withContentMigrations(
   slug: EditablePageSlug,
   content: FashionPageContent,
 ): FashionPageContent {
+  let nextContent = content;
+
+  // Keep legacy Fashion intro CTA in sync with the current YouTube destination.
+  if (slug === "fashion") {
+    const migratedBlocks = nextContent.blocks.map((block) => {
+      if (
+        block.id === "intro-fashion" &&
+        block.ctaHref === "#fashion-spring-summer"
+      ) {
+        return { ...block, ctaHref: fashionIntroYoutubePlaylistUrl };
+      }
+      return block;
+    });
+    nextContent = { ...nextContent, blocks: migratedBlocks };
+  }
+
   const defaultContent = getDefaultPageContent(slug);
 
-  if (content.blocks.some((block) => block.type === "reviews")) {
-    return content;
+  if (nextContent.blocks.some((block) => block.type === "reviews")) {
+    return nextContent;
   }
 
   const defaultReviewsBlock = defaultContent.blocks.find(
     (block) => block.type === "reviews",
   );
-  if (!defaultReviewsBlock) return content;
+  if (!defaultReviewsBlock) return nextContent;
 
-  const blocks = [...content.blocks];
+  const blocks = [...nextContent.blocks];
   const ctaIndex = blocks.findIndex((block) => block.type === "cta");
   blocks.splice(
     ctaIndex >= 0 ? ctaIndex : blocks.length,
@@ -52,7 +70,7 @@ function withContentMigrations(
     defaultReviewsBlock,
   );
 
-  return { ...content, blocks };
+  return { ...nextContent, blocks };
 }
 
 export async function loadPageContent(

@@ -161,7 +161,8 @@ export const defaultFashionPageContent: FashionPageContent = {
       body:
         "20sCreative dựng hình ảnh thời trang như một hệ thống editorial: film mở màn, ảnh tĩnh chiến dịch, chân dung chi tiết và những đoạn phim ngắn — tất cả tồn tại cùng nhau trên một câu chuyện liền mạch. Cách tiếp cận của chúng tôi vừa cổ điển vừa đương đại, được thúc đẩy bởi sự thử nghiệm và niềm đam mê kể chuyện bằng hình ảnh.",
       ctaLabel: "Khám phá các dự án",
-      ctaHref: "#fashion-spring-summer",
+      ctaHref:
+        "https://youtube.com/playlist?list=PLF0FMJSdi0xiOQHy4eLwZa0cz4T6HpIin&si=KTdqY1tk2gbf-KgC",
       align: "center",
       theme: "light",
     },
