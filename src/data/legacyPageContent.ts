@@ -57,6 +57,7 @@ export const legacyPageSlugs: LegacyPageSlug[] = [
   "sport",
   "photo",
 ];
+const COMMERCIAL_REQUIRED_LATEST_VIDEOS = 9;
 
 const defaultLegacyPageContentBySlug: {
   [K in LegacyPageSlug]: LegacyPageContentMap[K];
@@ -189,6 +190,66 @@ function normalizeFeaturedSeries(series: FeaturedSeries): FeaturedSeries {
   };
 }
 
+function normalizeCommercialLatestVideos(videos: VideoProject[]): VideoProject[] {
+  const defaultVideos = getDefaultLegacyPageContent("commercial").latestVideos;
+  const normalized = videos.slice(0, COMMERCIAL_REQUIRED_LATEST_VIDEOS).map(clone);
+
+  while (normalized.length < COMMERCIAL_REQUIRED_LATEST_VIDEOS) {
+    const fallback =
+      defaultVideos[normalized.length] ??
+      defaultVideos[defaultVideos.length - 1] ??
+      createFallbackVideo(normalized.length);
+    normalized.push(clone(fallback));
+  }
+
+  return normalized;
+}
+
+function createFallbackVideo(index: number): VideoProject {
+  return {
+    id: `commercial-latest-${index + 1}`,
+    thumbnail: "",
+    title: `Commercial video ${index + 1}`,
+    description: "",
+    duration: "00:00",
+    videoUrl: "",
+  };
+}
+
+function normalizeCommercialPageContent(
+  value: unknown,
+): LegacyCommercialPageContent | null {
+  if (
+    !isRecord(value) ||
+    value.kind !== "commercial" ||
+    value.version !== 1 ||
+    !hasString(value, "categoryTitle") ||
+    !hasString(value, "categoryDescription") ||
+    !Array.isArray(value.latestVideos) ||
+    !value.latestVideos.every(isVideoProject)
+  ) {
+    return null;
+  }
+
+  const defaultContent = getDefaultLegacyPageContent("commercial");
+  const newestSeries = isNewestSeries(value.newestSeries)
+    ? clone(value.newestSeries)
+    : clone(defaultContent.newestSeries);
+  const featuredSeries = isFeaturedSeries(value.featuredSeries)
+    ? normalizeFeaturedSeries(clone(value.featuredSeries))
+    : normalizeFeaturedSeries(clone(defaultContent.featuredSeries));
+
+  return {
+    version: 1,
+    kind: "commercial",
+    categoryTitle: value.categoryTitle as string,
+    categoryDescription: value.categoryDescription as string,
+    latestVideos: normalizeCommercialLatestVideos(value.latestVideos as VideoProject[]),
+    newestSeries,
+    featuredSeries,
+  };
+}
+
 function normalizeSportPageContent(value: unknown): LegacySportPageContent | null {
   if (
     !isRecord(value) ||
@@ -266,6 +327,10 @@ export function normalizeLegacyPageContent<K extends LegacyPageSlug>(
   slug: K,
   value: unknown,
 ): LegacyPageContentMap[K] | null {
+  if (slug === "commercial") {
+    return normalizeCommercialPageContent(value) as LegacyPageContentMap[K] | null;
+  }
+
   if (slug === "sport") {
     return normalizeSportPageContent(value) as LegacyPageContentMap[K] | null;
   }

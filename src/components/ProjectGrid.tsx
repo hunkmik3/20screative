@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useState, type ReactNode } from "react";
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    type CSSProperties,
+    type ReactNode,
+} from "react";
 import Image from "next/image";
 import AutoplayVideoPreview from "@/components/AutoplayVideoPreview";
 import DragResizeFrame from "@/components/DragResizeFrame";
@@ -71,7 +78,18 @@ export default function ProjectGrid({
     onSelectTarget,
     onUpdateLayout,
 }: ProjectGridProps) {
+    const isCommercialLayout = categoryTitle.trim().toLowerCase() === "commercial";
     const [activeVideo, setActiveVideo] = useState<VideoProject | null>(null);
+    const initialCommercialBottomDisplayIndex =
+        latestVideos.slice(3, 9).length > 1 ? 1 : 0;
+    const [commercialBottomDisplayIndex, setCommercialBottomDisplayIndex] =
+        useState(initialCommercialBottomDisplayIndex);
+    const [commercialBottomTrackAnimate, setCommercialBottomTrackAnimate] =
+        useState(true);
+    const [commercialBottomViewportWidth, setCommercialBottomViewportWidth] =
+        useState(0);
+    const [commercialTopCardWidth, setCommercialTopCardWidth] = useState(0);
+    const commercialBottomViewportRef = useRef<HTMLDivElement>(null);
 
     const openVideo = useCallback((video: VideoProject) => {
         const canUseStream =
@@ -86,6 +104,105 @@ export default function ProjectGrid({
 
     const featured = latestVideos[0];
     const sideVideos = latestVideos.slice(1, 5);
+    const commercialTopVideos = latestVideos.slice(1, 3);
+    const commercialBottomCarouselVideos = latestVideos.slice(3, 9);
+    const commercialBottomCarouselCount = commercialBottomCarouselVideos.length;
+    const hasCommercialBottomLoop = commercialBottomCarouselCount > 1;
+    const commercialBottomExpandedVideos = hasCommercialBottomLoop
+        ? [
+              commercialBottomCarouselVideos[commercialBottomCarouselCount - 1],
+              ...commercialBottomCarouselVideos,
+              commercialBottomCarouselVideos[0],
+          ]
+        : commercialBottomCarouselVideos;
+    const effectiveCommercialBottomDisplayIndex = hasCommercialBottomLoop
+        ? commercialBottomDisplayIndex
+        : Math.min(
+              commercialBottomDisplayIndex,
+              Math.max(0, commercialBottomCarouselCount - 1),
+          );
+    const activeCommercialBottomIndex =
+        commercialBottomCarouselCount > 0
+            ? hasCommercialBottomLoop
+                ? (((commercialBottomDisplayIndex - 1) % commercialBottomCarouselCount) +
+                      commercialBottomCarouselCount) %
+                  commercialBottomCarouselCount
+                : Math.min(commercialBottomDisplayIndex, commercialBottomCarouselCount - 1)
+            : 0;
+    const commercialBottomSlideGapPx = 20;
+    const commercialBottomScale = 1.69;
+    const desiredSideVisibleWidthPx =
+        commercialTopCardWidth > 0
+            ? commercialTopCardWidth
+            : commercialBottomViewportWidth * 0.18;
+    const commercialBottomSideInsetPx =
+        commercialBottomViewportWidth > 0
+            ? Math.max(
+                  24,
+                  Math.min(
+                      desiredSideVisibleWidthPx + commercialBottomSlideGapPx,
+                      commercialBottomViewportWidth * 0.42,
+                  ),
+              )
+            : 0;
+    const commercialBottomSlideWidthPx =
+        commercialBottomViewportWidth > 0
+            ? Math.max(
+                  280,
+                  Math.min(
+                      commercialBottomViewportWidth * 0.98,
+                      (commercialBottomViewportWidth - commercialBottomSideInsetPx * 2) *
+                          commercialBottomScale,
+                  ),
+              )
+            : 0;
+    const commercialBottomBaseOffsetPx =
+        commercialBottomViewportWidth > 0
+            ? (commercialBottomViewportWidth - commercialBottomSlideWidthPx) / 2
+            : 0;
+    const commercialBottomStepPx =
+        commercialBottomSlideWidthPx > 0
+            ? commercialBottomSlideWidthPx + commercialBottomSlideGapPx
+            : 0;
+    const commercialBottomViewportStyle: CSSProperties = {
+        ["--latest-bottom-slide-width" as string]: `${commercialBottomSlideWidthPx}px`,
+    };
+
+    useEffect(() => {
+        if (!isCommercialLayout) return;
+        const updateViewportWidth = () => {
+            setCommercialBottomViewportWidth(
+                commercialBottomViewportRef.current?.clientWidth ?? 0,
+            );
+            const topCardElement = document.querySelector(
+                `.${styles.latestTopCard}`,
+            ) as HTMLElement | null;
+            setCommercialTopCardWidth(topCardElement?.clientWidth ?? 0);
+        };
+
+        updateViewportWidth();
+        window.addEventListener("resize", updateViewportWidth);
+        return () => window.removeEventListener("resize", updateViewportWidth);
+    }, [isCommercialLayout]);
+
+    const handleCommercialBottomTrackTransitionEnd = () => {
+        if (!hasCommercialBottomLoop) return;
+        if (commercialBottomDisplayIndex === 0) {
+            setCommercialBottomTrackAnimate(false);
+            setCommercialBottomDisplayIndex(commercialBottomCarouselCount);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => setCommercialBottomTrackAnimate(true));
+            });
+            return;
+        }
+        if (commercialBottomDisplayIndex === commercialBottomCarouselCount + 1) {
+            setCommercialBottomTrackAnimate(false);
+            setCommercialBottomDisplayIndex(1);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => setCommercialBottomTrackAnimate(true));
+            });
+        }
+    };
 
     const renderEditableFrame = ({
         key,
@@ -230,7 +347,11 @@ export default function ProjectGrid({
                 staggerMs={42}
             />
 
-            <div className={styles.latestGrid}>
+            <div
+                className={`${styles.latestGrid} ${
+                    isCommercialLayout ? styles.latestGridCommercial : ""
+                }`}
+            >
                 {/* Featured Large Card */}
                 {featured &&
                     renderEditableFrame({
@@ -267,42 +388,215 @@ export default function ProjectGrid({
                         ),
                     })}
 
-                {/* Side 2x2 Grid */}
-                <div className={styles.latestSide}>
-                    {sideVideos.map((video, index) =>
-                        renderEditableFrame({
-                            key: video.id,
-                            target: `latest:${index + 1}`,
-                            className: styles.card,
-                            layout: video.layout,
-                            ariaLabel: `Edit ${video.title}`,
-                            onActivate: () => openVideo(video),
-                            children: (
-                                <>
-                            <div className={styles.thumbnailWrapper}>
-                                {renderPreviewMedia({
-                                    title: video.title,
-                                    thumbnail: video.thumbnail,
-                                    videoUrl: video.videoUrl,
-                                    streamUid: video.streamUid,
-                                    className: styles.thumbnail,
-                                    width: 400,
-                                    height: 225,
-                                    preload: index < 2 ? "auto" : "metadata",
-                                })}
-                                <span className={styles.duration}>
-                                    {video.duration}
-                                </span>
+                {isCommercialLayout ? (
+                    <>
+                        <div className={`${styles.latestSide} ${styles.latestSideCommercial}`}>
+                            <div className={styles.latestSideTopRow}>
+                                {commercialTopVideos.map((video, index) =>
+                                    renderEditableFrame({
+                                        key: video.id,
+                                        target: `latest:${index + 1}`,
+                                        className: `${styles.card} ${styles.latestTopCard}`,
+                                        layout: video.layout,
+                                        ariaLabel: `Edit ${video.title}`,
+                                        onActivate: () => openVideo(video),
+                                        children: (
+                                            <>
+                                                <div className={styles.thumbnailWrapper}>
+                                                    {renderPreviewMedia({
+                                                        title: video.title,
+                                                        thumbnail: video.thumbnail,
+                                                        videoUrl: video.videoUrl,
+                                                        streamUid: video.streamUid,
+                                                        className: styles.thumbnail,
+                                                        width: 720,
+                                                        height: 720,
+                                                        preload: "auto",
+                                                    })}
+                                                    <span className={styles.duration}>
+                                                        {video.duration}
+                                                    </span>
+                                                </div>
+                                                <h3 className={styles.cardTitle}>{video.title}</h3>
+                                                <p className={styles.cardDesc}>
+                                                    {video.description}
+                                                </p>
+                                            </>
+                                        ),
+                                    }),
+                                )}
                             </div>
-                            <h3 className={styles.cardTitle}>{video.title}</h3>
-                            <p className={styles.cardDesc}>
-                                {video.description}
-                            </p>
-                                </>
-                            ),
-                        }),
-                    )}
-                </div>
+                        </div>
+
+                        {commercialBottomCarouselVideos.length > 0 && (
+                            <div className={styles.latestBottomCarouselFull}>
+                                <div className={styles.latestBottomCarousel}>
+                                    <div
+                                        ref={commercialBottomViewportRef}
+                                        className={styles.latestBottomViewport}
+                                        style={commercialBottomViewportStyle}
+                                    >
+                                        <div
+                                            className={styles.latestBottomTrack}
+                                            style={{
+                                                transform: `translateX(${
+                                                    commercialBottomBaseOffsetPx -
+                                                    effectiveCommercialBottomDisplayIndex *
+                                                        commercialBottomStepPx
+                                                }px)`,
+                                                transition: commercialBottomTrackAnimate
+                                                    ? undefined
+                                                    : "none",
+                                            }}
+                                            onTransitionEnd={handleCommercialBottomTrackTransitionEnd}
+                                        >
+                                            {commercialBottomExpandedVideos.map((video, displayIdx) => {
+                                                const realIndex = hasCommercialBottomLoop
+                                                    ? displayIdx === 0
+                                                        ? commercialBottomCarouselCount - 1
+                                                        : displayIdx ===
+                                                            commercialBottomCarouselCount + 1
+                                                          ? 0
+                                                          : displayIdx - 1
+                                                    : displayIdx;
+                                                return renderEditableFrame({
+                                                    key: `${video.id}-carousel-${displayIdx}`,
+                                                    target: `latest:${realIndex + 3}`,
+                                                    className: `${styles.card} ${styles.latestBottomSlide} ${
+                                                        displayIdx ===
+                                                        effectiveCommercialBottomDisplayIndex
+                                                            ? styles.latestBottomSlideActive
+                                                            : ""
+                                                    }`,
+                                                    layout: video.layout,
+                                                    ariaLabel: `Edit ${video.title}`,
+                                                    onActivate: () => openVideo(video),
+                                                    children: (
+                                                        <>
+                                                            <div className={styles.thumbnailWrapper}>
+                                                                {renderPreviewMedia({
+                                                                    title: video.title,
+                                                                    thumbnail: video.thumbnail,
+                                                                    videoUrl: video.videoUrl,
+                                                                    streamUid: video.streamUid,
+                                                                    className: styles.thumbnail,
+                                                                    width: 1280,
+                                                                    height: 720,
+                                                                    preload:
+                                                                        realIndex < 2
+                                                                            ? "auto"
+                                                                            : "metadata",
+                                                                })}
+                                                                <span className={styles.duration}>
+                                                                    {video.duration}
+                                                                </span>
+                                                            </div>
+                                                            <h3 className={styles.cardTitle}>
+                                                                {video.title}
+                                                            </h3>
+                                                            <p className={styles.cardDesc}>
+                                                                {video.description}
+                                                            </p>
+                                                        </>
+                                                    ),
+                                                });
+                                        })}
+                                        </div>
+                                    </div>
+
+                                    {commercialBottomCarouselVideos.length > 1 && (
+                                        <div className={styles.latestBottomControls}>
+                                            <button
+                                                type="button"
+                                                className={styles.latestBottomArrow}
+                                                onClick={() =>
+                                                    setCommercialBottomDisplayIndex(
+                                                        (current) => current - 1,
+                                                    )
+                                                }
+                                                aria-label="Previous video"
+                                            >
+                                                <span aria-hidden="true">‹</span>
+                                            </button>
+                                            <div className={styles.latestBottomDots}>
+                                                {commercialBottomCarouselVideos.map(
+                                                    (video, index) => (
+                                                        <button
+                                                            key={`${video.id}-dot`}
+                                                            type="button"
+                                                            className={
+                                                                index ===
+                                                                activeCommercialBottomIndex
+                                                                    ? styles.latestBottomDotActive
+                                                                    : styles.latestBottomDot
+                                                            }
+                                                            onClick={() =>
+                                                                setCommercialBottomDisplayIndex(
+                                                                    hasCommercialBottomLoop
+                                                                        ? index + 1
+                                                                        : index,
+                                                                )
+                                                            }
+                                                            aria-label={`Go to video ${index + 1}`}
+                                                        />
+                                                    ),
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className={styles.latestBottomArrow}
+                                                onClick={() =>
+                                                    setCommercialBottomDisplayIndex(
+                                                        (current) => current + 1,
+                                                    )
+                                                }
+                                                aria-label="Next video"
+                                            >
+                                                <span aria-hidden="true">›</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <div className={styles.latestSide}>
+                        {sideVideos.map((video, index) =>
+                            renderEditableFrame({
+                                key: video.id,
+                                target: `latest:${index + 1}`,
+                                className: styles.card,
+                                layout: video.layout,
+                                ariaLabel: `Edit ${video.title}`,
+                                onActivate: () => openVideo(video),
+                                children: (
+                                    <>
+                                        <div className={styles.thumbnailWrapper}>
+                                            {renderPreviewMedia({
+                                                title: video.title,
+                                                thumbnail: video.thumbnail,
+                                                videoUrl: video.videoUrl,
+                                                streamUid: video.streamUid,
+                                                className: styles.thumbnail,
+                                                width: 400,
+                                                height: 225,
+                                                preload: index < 2 ? "auto" : "metadata",
+                                            })}
+                                            <span className={styles.duration}>
+                                                {video.duration}
+                                            </span>
+                                        </div>
+                                        <h3 className={styles.cardTitle}>{video.title}</h3>
+                                        <p className={styles.cardDesc}>
+                                            {video.description}
+                                        </p>
+                                    </>
+                                ),
+                            }),
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className={styles.separator} />

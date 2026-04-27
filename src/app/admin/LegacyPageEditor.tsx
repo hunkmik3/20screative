@@ -494,16 +494,6 @@ export default function LegacyPageEditor({
     markDirty();
   }
 
-  function addLatestVideo() {
-    setContent((current) => {
-      if (current.kind !== "commercial") return current;
-      const latestVideos = [...current.latestVideos, createVideoProject()];
-      setSelectedKey(`latest:${latestVideos.length - 1}`);
-      return { ...current, latestVideos };
-    });
-    markDirty();
-  }
-
   function addFeaturedVideo() {
     setContent((current) => {
       if (current.kind !== "commercial" && current.kind !== "sport") {
@@ -568,6 +558,7 @@ export default function LegacyPageEditor({
     const [type, rawIndex] = selectedKey.split(":");
     const index = Number(rawIndex);
     if (!Number.isFinite(index)) return;
+    if (content.kind === "commercial" && type === "latest") return;
 
     setContent((current) => {
       if (current.kind === "commercial" && type === "latest") {
@@ -626,6 +617,7 @@ export default function LegacyPageEditor({
     const [type, rawIndex] = selectedKey.split(":");
     const index = Number(rawIndex);
     if (!Number.isFinite(index)) return;
+    if (content.kind === "commercial" && type === "latest") return;
 
     setContent((current) => {
       if (current.kind === "commercial" && type === "latest") {
@@ -705,6 +697,7 @@ export default function LegacyPageEditor({
     const index = Number(rawIndex);
     const target = index + direction;
     if (!Number.isFinite(index)) return;
+    if (content.kind === "commercial" && type === "latest") return;
 
     setContent((current) => {
       if (current.kind === "commercial" && type === "latest") {
@@ -975,21 +968,30 @@ export default function LegacyPageEditor({
             renderStructureButton("page", "Page header", "Title and subtitle")}
           {content.kind === "commercial" && (
             <>
-              {content.latestVideos.map((video, index) =>
+              {content.latestVideos.slice(0, 1).map((video, index) =>
                 renderStructureButton(
                   `latest:${index}`,
                   video.title,
-                  "Latest video",
+                  "Left featured video",
                   String(index + 1).padStart(2, "0"),
                 ),
               )}
-              <button
-                type="button"
-                className={styles.fullWidthButton}
-                onClick={addLatestVideo}
-              >
-                + Add latest video
-              </button>
+              {content.latestVideos.slice(1, 3).map((video, offset) =>
+                renderStructureButton(
+                  `latest:${offset + 1}`,
+                  video.title,
+                  "Top right video (1:1)",
+                  String(offset + 2).padStart(2, "0"),
+                ),
+              )}
+              {content.latestVideos.slice(3, 9).map((video, offset) =>
+                renderStructureButton(
+                  `latest:${offset + 3}`,
+                  video.title,
+                  "Bottom carousel video",
+                  `C${String(offset + 1).padStart(2, "0")}`,
+                ),
+              )}
               {renderStructureButton("newest", "Newest Video", content.newestSeries.title)}
               {renderStructureButton(
                 "featured",
@@ -1242,6 +1244,8 @@ export default function LegacyPageEditor({
     const selectedParts = selectedKey.split(":");
     const selectedType = selectedParts[0];
     const selectedIndex = Number(selectedParts[1]);
+    const isLockedCommercialLatest =
+      content.kind === "commercial" && selectedType === "latest";
 
     return (
       <>
@@ -1600,13 +1604,25 @@ export default function LegacyPageEditor({
             )}
         </div>
         <footer className={styles.inspectorFooter}>
-          <button type="button" onClick={() => moveSelectedItem(-1)}>
+          <button
+            type="button"
+            onClick={() => moveSelectedItem(-1)}
+            disabled={isLockedCommercialLatest}
+          >
             Up
           </button>
-          <button type="button" onClick={() => moveSelectedItem(1)}>
+          <button
+            type="button"
+            onClick={() => moveSelectedItem(1)}
+            disabled={isLockedCommercialLatest}
+          >
             Down
           </button>
-          <button type="button" onClick={duplicateSelectedItem}>
+          <button
+            type="button"
+            onClick={duplicateSelectedItem}
+            disabled={isLockedCommercialLatest}
+          >
             Duplicate
           </button>
           <button type="button" onClick={resetSelectedLayout}>
@@ -1616,6 +1632,7 @@ export default function LegacyPageEditor({
             type="button"
             className={styles.dangerButton}
             onClick={removeSelectedItem}
+            disabled={isLockedCommercialLatest}
           >
             Delete
           </button>

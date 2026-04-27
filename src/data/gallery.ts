@@ -163,6 +163,42 @@ export const commercialLatestVideos: VideoProject[] = [
         duration: "02:55",
         videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
     },
+    {
+        id: "cl-6",
+        thumbnail: "https://picsum.photos/seed/cl6/800/450",
+        title: "Hospitality: Premium Escape",
+        description:
+            "Destination-focused storytelling crafted for high-end hospitality campaigns.",
+        duration: "03:08",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "cl-7",
+        thumbnail: "https://picsum.photos/seed/cl7/800/450",
+        title: "Retail: Launch Season",
+        description:
+            "Fast-paced launch content for seasonal retail promotions across channels.",
+        duration: "02:42",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "cl-8",
+        thumbnail: "https://picsum.photos/seed/cl8/800/450",
+        title: "Finance: Trust in Motion",
+        description:
+            "Human-centered corporate film for financial and service-led brands.",
+        duration: "03:36",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
+    {
+        id: "cl-9",
+        thumbnail: "https://picsum.photos/seed/cl9/800/450",
+        title: "E-commerce: Conversion Film",
+        description:
+            "Performance-focused creative film optimized for digital commerce funnels.",
+        duration: "02:21",
+        videoUrl: "https://www.youtube.com/watch?v=ZydWWTTWuO8",
+    },
 ];
 
 export const commercialNewestSeries: NewestSeries = {
