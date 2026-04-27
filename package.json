@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "stream:sync": "node scripts/sync-cloudflare-stream.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1037.0",

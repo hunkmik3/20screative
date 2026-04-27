@@ -79,3 +79,22 @@
         grid-column: span 1;
     }
 }
+
+@media (max-width: 560px) {
+    .page {
+        padding: 32px 12px 48px;
+    }
+
+    .header {
+        margin-bottom: 22px;
+    }
+
+    .gallery {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .image {
+        border-radius: 4px;
+    }
+}

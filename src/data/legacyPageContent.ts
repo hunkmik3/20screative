@@ -166,6 +166,8 @@ function sportLookbookFromPrograms(
     description: program.subtitle,
     duration: "00:00",
     videoUrl: program.videoUrl,
+    streamUid: program.streamUid,
+    streamSourceUrl: program.streamSourceUrl,
     layout: program.layout,
   }));
 

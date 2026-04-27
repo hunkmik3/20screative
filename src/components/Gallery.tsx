@@ -21,6 +21,12 @@ interface GalleryProps {
 export default function Gallery({ images, columns = 3 }: GalleryProps) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const columnClass =
+        columns === 2
+            ? styles.grid2
+            : columns === 4
+                ? styles.grid4
+                : styles.grid3;
 
     const openLightbox = useCallback((index: number) => {
         setCurrentIndex(index);
@@ -41,12 +47,7 @@ export default function Gallery({ images, columns = 3 }: GalleryProps) {
 
     return (
         <>
-            <div
-                className={styles.grid}
-                style={{
-                    gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                }}
-            >
+            <div className={`${styles.grid} ${columnClass}`}>
                 {images.map((image, index) => (
                     <div
                         key={image.id}

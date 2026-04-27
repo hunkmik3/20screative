@@ -126,18 +126,21 @@
     margin: 0;
 }
 
+@media (max-aspect-ratio: 16/9) {
+    .heroVideo {
+        width: 177.78vh;
+        height: 100vh;
+        min-width: 100vw;
+        min-height: 100vh;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .heroVideo {
         width: 300vw;
         height: 100vh;
         min-width: 300vw;
-    }
-}
-
-@media (max-aspect-ratio: 16/9) {
-    .heroVideo {
-        width: 100vw;
-        height: 56.25vw;
+        min-height: 100vh;
     }
 }

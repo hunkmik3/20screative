@@ -54,6 +54,8 @@ export interface FashionMediaItem {
   mediaKind: FashionMediaKind;
   posterUrl?: string;
   videoUrl?: string;
+  streamUid?: string;
+  streamSourceUrl?: string;
   href?: string;
   meta?: string;
   aspect?: "portrait" | "landscape" | "square";
@@ -77,6 +79,8 @@ export interface FashionBlock {
   mediaKind?: FashionMediaKind;
   posterUrl?: string;
   videoUrl?: string;
+  streamUid?: string;
+  streamSourceUrl?: string;
   ctaLabel?: string;
   ctaHref?: string;
   items?: FashionMediaItem[];

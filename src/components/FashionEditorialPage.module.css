@@ -2,7 +2,11 @@
   background: #ffffff;
   color: #111111;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+}
+
+.publicBlock {
+  min-width: 0;
 }
 
 .pageEditor {
@@ -122,8 +126,10 @@
 /* ---------- shared media frame ---------- */
 .mediaFrame {
   position: relative;
+  width: 100%;
   overflow: hidden;
   background: #eeeeee;
+  min-width: 0;
 }
 
 .media,
@@ -135,6 +141,17 @@
 
 .media {
   object-fit: cover;
+}
+
+.mediaFrame > .media,
+.mediaFrame > .mediaPlaceholder {
+  position: absolute;
+  inset: 0;
+}
+
+iframe.media {
+  border: 0;
+  background: #0a0a0a;
 }
 
 .mediaPlaceholder {
@@ -183,9 +200,29 @@
   inset: 0;
 }
 
+.heroMedia,
+.videoTeaserMedia,
+.ctaMedia {
+  container-type: size;
+}
+
 /* Ken-burns subtle zoom on hero background image */
 .heroMediaWrap .media {
   animation: kenBurns 22s ease-in-out infinite alternate;
+}
+
+.heroMediaWrap iframe.media,
+.videoTeaserMedia iframe.media,
+.ctaMedia iframe.media {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: max(100cqw, calc(100cqh * 16 / 9));
+  height: max(100cqh, calc(100cqw * 9 / 16));
+  min-width: 100%;
+  min-height: 100%;
+  transform: translate(-50%, -50%);
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -280,6 +317,7 @@
   background: #ffffff;
   color: #111111;
   border: 1px solid #ffffff;
+  overflow: hidden;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
@@ -319,6 +357,34 @@
 
 .playButton:hover.playButtonCircle .playIcon {
   background: rgba(255, 255, 255, 0.12);
+}
+
+.playButtonTextWrap {
+  position: relative;
+  display: inline-grid;
+  overflow: hidden;
+  line-height: 1.12;
+}
+
+.playButtonText,
+.playButtonTextClone {
+  grid-area: 1 / 1;
+  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.playButtonTextClone {
+  transform: translate3d(0, 125%, 0);
+}
+
+.playButton:hover .playButtonText,
+.lookFeaturePlay:hover .playButtonText {
+  transform: translate3d(0, -125%, 0);
+}
+
+.playButton:hover .playButtonTextClone,
+.lookFeaturePlay:hover .playButtonTextClone {
+  transform: translate3d(0, 0, 0);
 }
 
 .playIcon {
@@ -570,6 +636,7 @@
   border: 0;
   color: #111111;
   cursor: pointer;
+  overflow: hidden;
   font-family: var(--font-body);
   font-size: 0.7rem;
   font-weight: 800;
@@ -595,8 +662,19 @@
 
 .lookFeatureCopy {
   width: min(100%, 760px);
-  margin: 24px auto 0;
+  margin: clamp(10px, 1.4vw, 18px) auto 0;
   padding-inline: clamp(16px, 4vw, 32px);
+}
+
+.page:not(.pageEditor) .lookFeatureCopy {
+  margin-top: clamp(10px, 1.4vw, 18px) !important;
+  transform: none !important;
+}
+
+.page:not(.pageEditor) .lookFeatureMediaInner {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  transform: none !important;
 }
 
 .lookFeatureCopy h2 {
@@ -676,6 +754,10 @@
   position: relative;
 }
 
+.duoColumn > .fadeIn {
+  width: 100%;
+}
+
 .duoTop {
   align-items: flex-start;
 }
@@ -715,29 +797,51 @@
 
 .duoPlus {
   position: absolute;
-  right: 14px;
-  bottom: 14px;
+  left: 50%;
+  right: auto;
+  bottom: clamp(14px, 2vw, 24px);
+  transform: translateX(-50%);
   z-index: 3;
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 10px 14px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   background: rgba(255, 255, 255, 0.92);
   color: #111111;
   cursor: pointer;
-  font-size: 1.05rem;
-  font-weight: 400;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
   transition:
     background-color 0.2s ease,
     transform 0.2s ease;
 }
 
+.duoPlus::before {
+  content: "";
+  width: 0;
+  height: 0;
+  margin-left: 1px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 7px solid currentColor;
+}
+
 .duoPlus:hover {
   background: #ffffff;
-  transform: scale(1.06);
+  transform: translateX(-50%) scale(1.04);
+}
+
+.duoPlus:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
 }
 
 .duoDots {
@@ -875,14 +979,17 @@ a.itemCard:hover .media {
 }
 
 .portraitMedia {
+  width: 100%;
   aspect-ratio: 3 / 4;
 }
 
 .landscapeMedia {
+  width: 100%;
   aspect-ratio: 16 / 10;
 }
 
 .squareMedia {
+  width: 100%;
   aspect-ratio: 1;
 }
 
@@ -947,16 +1054,31 @@ a.itemCard:hover .media {
 
 .inlinePlay {
   position: absolute;
-  left: 14px;
-  top: 14px;
+  left: 50%;
+  bottom: clamp(14px, 2vw, 24px);
+  transform: translateX(-50%);
   z-index: 2;
-  padding: 7px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
   background: rgba(255, 255, 255, 0.9);
   color: #111111;
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.inlinePlay::before {
+  content: "";
+  width: 0;
+  height: 0;
+  margin-left: 1px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 7px solid currentColor;
 }
 
 /* ---------- CAROUSEL (centered single-slide) ---------- */
@@ -1031,6 +1153,7 @@ a.itemCard:hover .media {
   position: relative;
   width: 100%;
   overflow: hidden;
+  overscroll-behavior-x: contain;
 }
 
 .lookbookTrack {
@@ -1295,11 +1418,11 @@ a.itemCard:hover .media {
 /* ---------- REVIEWS ---------- */
 .reviewsSection {
   background: #f4f1ed;
-  padding: clamp(64px, 9vw, 128px) clamp(16px, 4vw, 56px);
+  padding: clamp(64px, 9vw, 128px) clamp(12px, 2.4vw, 32px);
 }
 
 .reviewGrid {
-  width: min(1280px, 100%);
+  width: min(1640px, 100%);
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1308,14 +1431,53 @@ a.itemCard:hover .media {
   border: 1px solid #d8d1c8;
 }
 
+.reviewGrid1Cols {
+  grid-template-columns: minmax(0, 1fr);
+  width: min(720px, 100%);
+}
+
+.reviewGrid2Cols {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(1100px, 100%);
+}
+
+.reviewGrid3Cols {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.reviewGrid4Cols {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.reviewGrid > * {
+  height: 100%;
+  min-width: 0;
+}
+
+.reviewReveal {
+  height: 100%;
+  transform: translate3d(96px, 0, 0) scale(0.985);
+  transition:
+    opacity 0.95s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reviewReveal.fadeInVisible {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
 .reviewCard {
   min-height: 360px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 32px;
   padding: clamp(26px, 4vw, 44px);
   background: #ffffff;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .reviewCard blockquote {
@@ -1325,11 +1487,21 @@ a.itemCard:hover .media {
   font-size: clamp(1.45rem, 2.4vw, 2.45rem);
   font-weight: 500;
   line-height: 1.08;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .reviewCard footer {
   display: grid;
   gap: 4px;
+  min-width: 0;
+}
+
+.reviewCard footer strong,
+.reviewCard footer span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .reviewCard strong,
@@ -1347,6 +1519,13 @@ a.itemCard:hover .media {
 .reviewCard footer span {
   color: #777777;
   font-size: 0.82rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviewReveal,
+  .reviewReveal.fadeInVisible {
+    transform: none !important;
+  }
 }
 
 /* ---------- SPACER ---------- */
@@ -1497,8 +1676,39 @@ a.itemCard:hover .media {
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
+  .page:not(.pageEditor) .publicBlock,
+  .page:not(.pageEditor) .heroCopy,
+  .page:not(.pageEditor) .featureMediaWrap,
+  .page:not(.pageEditor) .featureCopy,
+  .page:not(.pageEditor) .lookFeatureMediaInner,
+  .page:not(.pageEditor) .lookFeatureCopy,
+  .page:not(.pageEditor) .duoCard,
+  .page:not(.pageEditor) .duoCardInner,
+  .page:not(.pageEditor) .itemCard,
+  .page:not(.pageEditor) .itemMediaInner {
+    max-width: 100% !important;
+    transform: none !important;
+  }
+
+  .page:not(.pageEditor) .publicBlock {
+    width: 100% !important;
+  }
+
+  .page:not(.pageEditor) .featureMediaWrap,
+  .page:not(.pageEditor) .featureCopy,
+  .page:not(.pageEditor) .lookFeatureMediaInner,
+  .page:not(.pageEditor) .lookFeatureCopy,
+  .page:not(.pageEditor) .duoCardInner,
+  .page:not(.pageEditor) .itemMediaInner {
+    width: 100% !important;
+  }
+
   .hero {
     min-height: calc(90vh - var(--header-height));
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(1.7rem, 6vw, 2.6rem);
   }
 
   .feature {
@@ -1506,12 +1716,50 @@ a.itemCard:hover .media {
     min-height: 0;
   }
 
+  .featureMediaWrap,
   .featureMedia {
-    min-height: 460px;
+    min-height: 360px;
+  }
+
+  .featureCopy h2 {
+    font-size: clamp(1.8rem, 6vw, 2.8rem);
   }
 
   .mediaPair {
     grid-template-columns: 1fr;
+  }
+
+  .editorialDuo {
+    padding: clamp(40px, 6vw, 64px) 0;
+  }
+
+  .duoGrid {
+    grid-template-columns: 1fr;
+    gap: clamp(20px, 4vw, 32px);
+    min-height: 0;
+    padding-inline: clamp(16px, 4vw, 32px);
+  }
+
+  .duoCard,
+  .duoColumn:nth-child(1) .duoCard,
+  .duoColumn:nth-child(2) .duoCard {
+    margin-left: auto;
+    margin-right: auto;
+    width: min(100%, 360px);
+  }
+
+  .duoColumn {
+    align-items: center;
+  }
+
+  .duoCtaWrap {
+    position: relative;
+    inset: auto;
+    padding-top: 12px;
+  }
+
+  .lookFeature {
+    padding: clamp(32px, 5vw, 56px) 0 clamp(24px, 3vw, 40px);
   }
 
   .carouselSlide {
@@ -1540,37 +1788,97 @@ a.itemCard:hover .media {
     grid-template-columns: 1fr;
   }
 
-  .reviewGrid {
-    grid-template-columns: 1fr;
+  .reviewGrid,
+  .reviewGrid1Cols,
+  .reviewGrid2Cols,
+  .reviewGrid3Cols,
+  .reviewGrid4Cols {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(720px, 100%);
   }
 
   .reviewCard {
-    min-height: 260px;
+    min-height: 220px;
+    height: auto;
+  }
+
+  .reviewReveal {
+    transform: translate3d(64px, 0, 0) scale(0.99);
+  }
+
+  .reviewCard blockquote {
+    font-size: clamp(1.15rem, 4vw, 1.6rem);
   }
 
   .videoTeaserInner {
     aspect-ratio: 16 / 11;
-    min-height: 320px;
+    min-height: 280px;
+  }
+
+  .videoTeaserOverlay h2 {
+    font-size: clamp(1.4rem, 5vw, 2.4rem);
+  }
+
+  .ctaBlock {
+    min-height: 460px;
+  }
+
+  .ctaCopy h2 {
+    font-size: clamp(1.8rem, 7vw, 3.2rem);
+  }
+
+  .sectionHeader h2 {
+    font-size: clamp(1.7rem, 6vw, 3rem);
+  }
+
+  .statement h2 {
+    font-size: clamp(1.6rem, 6vw, 3rem);
   }
 }
 
 @media (max-width: 560px) {
   .heroCopy {
-    padding: 34px 18px;
+    padding: 34px 16px !important;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(1.5rem, 7vw, 2.2rem);
+    max-width: 12ch;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-wrap: break-word;
+  }
+
+  .heroSubtitle {
+    font-size: clamp(0.78rem, 3vw, 0.95rem);
+    max-width: 26ch;
+    margin-left: auto;
+    margin-right: auto;
+    letter-spacing: 0.12em;
+    overflow-wrap: break-word;
   }
 
   .statement,
   .textIntro {
-    padding-inline: 18px;
+    padding-inline: 16px;
+    padding-block: clamp(48px, 12vw, 80px);
   }
 
   .featureCopy {
-    padding: 36px 18px;
+    padding: 32px 16px !important;
+  }
+
+  .featureCopy h2 {
+    font-size: clamp(1.6rem, 7vw, 2.2rem);
   }
 
   .blockShell,
   .worldGrid {
     padding-inline: 12px;
+  }
+
+  .blockShell {
+    padding-block: clamp(48px, 11vw, 80px);
   }
 
   .projectGrid {
@@ -1580,16 +1888,115 @@ a.itemCard:hover .media {
   .carouselControls {
     grid-template-columns: auto 1fr auto;
     gap: 12px;
+    padding-inline: 8px;
+  }
+
+  .lookbookControls {
+    gap: 14px;
+  }
+
+  .lookbookArrow {
+    width: 38px;
+    height: 38px;
+    font-size: 1.25rem;
   }
 
   .lookFeatureBadge {
-    top: 16px;
-    left: 24px;
+    top: 12px;
+    left: 20px;
+    font-size: 0.72rem;
   }
 
   .lookFeaturePlay {
-    bottom: 16px;
-    left: 24px;
-    padding: 10px 14px;
+    bottom: 12px;
+    left: 20px;
+    padding: 9px 12px;
+    font-size: 0.66rem;
+  }
+
+  .lookFeatureCopy {
+    padding-inline: 16px !important;
+    margin-top: 10px !important;
+  }
+
+  .lookFeatureCopy h2 {
+    font-size: clamp(1.1rem, 4.5vw, 1.5rem);
+  }
+
+  .duoCard,
+  .duoColumn:nth-child(1) .duoCard,
+  .duoColumn:nth-child(2) .duoCard {
+    width: 100%;
+  }
+
+  .duoCta {
+    min-width: 0;
+    width: 100%;
+    padding: 0 18px;
+    min-height: 46px;
+    font-size: 0.7rem;
+  }
+
+  .duoCaption {
+    padding-inline: 16px;
+  }
+
+  .duoPlus {
+    bottom: 12px;
+    min-height: 36px;
+    padding: 9px 12px;
+    font-size: 0.6rem;
+  }
+
+  .videoTeaserInner {
+    aspect-ratio: 4 / 5;
+    min-height: 320px;
+  }
+
+  .videoTeaserOverlay {
+    padding: 20px;
+  }
+
+  .videoTeaserOverlay h2 {
+    font-size: clamp(1.3rem, 6vw, 2rem);
+  }
+
+  .playButtonCircle .playIcon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .reviewCard {
+    padding: 24px 20px;
+  }
+
+  .reviewsSection {
+    padding-inline: 8px;
+  }
+
+  .reviewGrid {
+    width: 100%;
+  }
+
+  .ctaBlock {
+    min-height: 400px;
+  }
+
+  .ctaCopy {
+    padding: 60px 16px;
+  }
+
+  .ctaCopy h2 {
+    font-size: clamp(1.6rem, 8vw, 2.6rem);
+  }
+
+  .actionRow {
+    gap: 10px;
+  }
+
+  .playButton {
+    min-height: 48px;
+    padding: 0 18px;
+    font-size: 0.68rem;
   }
 }

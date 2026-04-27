@@ -3,7 +3,7 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: 1000;
     padding: 16px 32px;
     background: #ffffff;
 }
@@ -128,13 +128,16 @@
 .hamburger {
     display: none;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 4px;
-    width: 20px;
+    width: 44px;
+    height: 44px;
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0;
-    z-index: 1001;
+    padding: 0 12px;
+    z-index: 1002;
 }
 
 .hamburger span {
@@ -214,7 +217,11 @@
 /* Responsive */
 @media (max-width: 900px) {
     .header {
-        padding: 14px 20px;
+        padding: 8px 14px;
+    }
+
+    .container {
+        min-height: 44px;
     }
 
     .leftNav {
@@ -233,6 +240,9 @@
         position: relative;
         left: auto;
         transform: none;
-        font-size: 30px;
+        font-size: clamp(24px, 7vw, 30px);
+        max-width: calc(100vw - 96px);
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }

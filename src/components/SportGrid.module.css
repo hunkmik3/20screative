@@ -1,6 +1,7 @@
 .wrapper {
     max-width: 80%;
     margin: 0 auto;
+    min-width: 0;
 }
 
 .visuallyHidden {
@@ -48,6 +49,8 @@
 .card {
     position: relative;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     aspect-ratio: 2.2/1;
     overflow: hidden;
     margin: 40px 0;
@@ -59,6 +62,13 @@
     height: 100%;
     object-fit: cover;
     transition: transform var(--transition-slow);
+}
+
+.cardVideoPreview {
+    display: block;
+    border: 0;
+    background: #0a0a0a;
+    pointer-events: none;
 }
 
 .cardImagePlaceholder {
@@ -113,9 +123,13 @@
     color: rgba(255, 255, 255, 0.85);
     max-width: 500px;
     line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .cardBtn {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
     font-family: var(--font-body);
     font-size: 0.65rem;
     font-weight: 400;
@@ -127,12 +141,39 @@
     background: transparent;
     cursor: pointer;
     margin-top: 6px;
+    overflow: hidden;
     transition: all var(--transition-smooth);
 }
 
 .cardBtn:hover {
     background: rgba(255, 255, 255, 0.15);
     border-color: #ffffff;
+}
+
+.cardBtnTextWrap {
+    position: relative;
+    display: inline-grid;
+    overflow: hidden;
+    line-height: 1.12;
+}
+
+.cardBtnText,
+.cardBtnTextClone {
+    grid-area: 1 / 1;
+    transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+}
+
+.cardBtnTextClone {
+    transform: translate3d(0, 125%, 0);
+}
+
+.cardBtn:hover .cardBtnText {
+    transform: translate3d(0, -125%, 0);
+}
+
+.cardBtn:hover .cardBtnTextClone {
+    transform: translate3d(0, 0, 0);
 }
 
 .emptyState {
@@ -189,11 +230,13 @@
 }
 
 .lookbookSlotMedia video,
+.lookbookSlotMedia iframe,
 .lookbookSlotImage {
     width: 100%;
     height: 100%;
-    object-fit: cover;
     display: block;
+    border: 0;
+    object-fit: cover;
 }
 
 .lookbookSlotTitle {
@@ -208,6 +251,16 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .wrapper {
+        max-width: 92vw;
+    }
+
+    .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
+    }
+
     .card {
         aspect-ratio: 16/10;
         margin: 28px 0;
@@ -220,11 +273,25 @@
 
 @media (max-width: 480px) {
     .wrapper {
-        max-width: 95%;
+        max-width: 94vw;
     }
 
     .card {
         aspect-ratio: 4/3;
         margin: 20px 0;
+    }
+
+    .cardOverlay {
+        gap: 8px;
+        padding: 18px;
+    }
+
+    .cardSubtitle {
+        display: none;
+    }
+
+    .cardBtn {
+        padding: 9px 16px;
+        font-size: 0.6rem;
     }
 }

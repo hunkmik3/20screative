@@ -2,6 +2,7 @@
     max-width: 80%;
     margin: 0 auto;
     padding: 0;
+    min-width: 0;
 }
 
 /* ================================
@@ -68,6 +69,13 @@
     height: 100%;
     object-fit: cover;
     transition: transform var(--transition-slow);
+}
+
+.thumbnailWrapper iframe.thumbnail,
+.thumbnailWrapper video.thumbnail {
+    display: block;
+    border: 0;
+    background: #0a0a0a;
 }
 
 .mediaPlaceholder {
@@ -144,6 +152,13 @@
     margin-bottom: 48px;
 }
 
+.latestFeatured,
+.card,
+.newestBanner {
+    min-width: 0;
+    max-width: 100%;
+}
+
 .latestFeatured .thumbnailWrapper {
     aspect-ratio: 16/9;
 }
@@ -176,6 +191,13 @@
     height: 100%;
     object-fit: cover;
     transition: transform var(--transition-slow);
+}
+
+.newestBanner iframe.bannerImage,
+.newestBanner video.bannerImage {
+    display: block;
+    border: 0;
+    background: #0a0a0a;
 }
 
 .newestBanner:hover .bannerImage {
@@ -274,12 +296,14 @@
     border-radius: 4px;
 }
 
+.lookbookSlotMedia iframe,
 .lookbookSlotMedia video,
 .lookbookSlotImage {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    border: 0;
 }
 
 /* ================================
@@ -391,6 +415,18 @@
    RESPONSIVE
    ================================ */
 @media (max-width: 900px) {
+    .wrapper {
+        max-width: 92vw;
+    }
+
+    .latestFeatured,
+    .card,
+    .newestBanner {
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
+    }
+
     .latestGrid {
         grid-template-columns: 1fr;
         gap: 24px;
@@ -432,6 +468,10 @@
 }
 
 @media (max-width: 600px) {
+    .wrapper {
+        max-width: 94vw;
+    }
+
     .header {
         padding: 32px 0 24px;
     }
@@ -451,6 +491,20 @@
 
     .newestBanner {
         aspect-ratio: 16/9;
+    }
+
+    .bannerOverlay {
+        gap: 8px;
+        padding: 18px;
+    }
+
+    .bannerDesc {
+        display: none;
+    }
+
+    .playBtn {
+        width: 40px;
+        height: 40px;
     }
 
     .carouselCard {

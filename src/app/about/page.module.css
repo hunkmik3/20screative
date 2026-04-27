@@ -106,4 +106,24 @@
     .page {
         align-items: flex-start;
     }
+
+    .title {
+        line-height: 1.35;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 36px 18px 48px;
+    }
+
+    .intro,
+    .description,
+    .clients {
+        margin-bottom: 32px;
+    }
+
+    .ctaButton {
+        width: 100%;
+    }
 }

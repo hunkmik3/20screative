@@ -1,64 +1,30 @@
 "use client";
 
 import { useEffect } from "react";
+import CloudflareStreamPlayer from "@/components/CloudflareStreamPlayer";
+import { hasCloudflareStreamConfig } from "@/lib/cloudflareStream";
+import { isYoutubeUrl, toYoutubeEmbedUrl } from "@/lib/videoEmbed";
 import styles from "./VideoPopup.module.css";
 
 interface VideoPopupProps {
     isOpen: boolean;
     title: string;
     videoUrl: string;
+    streamUid?: string | null;
     onClose: () => void;
     fullscreen?: boolean;
 }
-
-const isYoutubeUrl = (url: string) => {
-    return url.includes("youtube.com") || url.includes("youtu.be");
-};
-
-const buildYoutubeEmbedUrl = (videoId: string) => {
-    const embedUrl = new URL(`https://www.youtube-nocookie.com/embed/${videoId}`);
-    embedUrl.searchParams.set("autoplay", "1");
-    embedUrl.searchParams.set("rel", "0");
-    embedUrl.searchParams.set("modestbranding", "1");
-    embedUrl.searchParams.set("iv_load_policy", "3");
-    embedUrl.searchParams.set("playsinline", "1");
-    return embedUrl.toString();
-};
-
-const toEmbedUrl = (url: string) => {
-    try {
-        const parsed = new URL(url);
-
-        if (parsed.hostname.includes("youtu.be")) {
-            const videoId = parsed.pathname.replace("/", "");
-            return videoId ? buildYoutubeEmbedUrl(videoId) : url;
-        }
-
-        if (parsed.pathname.includes("/embed/")) {
-            const videoId = parsed.pathname.split("/embed/")[1]?.split("/")[0];
-            return videoId ? buildYoutubeEmbedUrl(videoId) : url;
-        }
-
-        if (parsed.pathname.includes("/watch")) {
-            const videoId = parsed.searchParams.get("v");
-            return videoId ? buildYoutubeEmbedUrl(videoId) : url;
-        }
-    } catch {
-        return url;
-    }
-
-    return url;
-};
 
 export default function VideoPopup({
     isOpen,
     title,
     videoUrl,
+    streamUid,
     onClose,
     fullscreen = false,
 }: VideoPopupProps) {
     useEffect(() => {
-        if (!isOpen || !videoUrl.trim()) return;
+        if (!isOpen || (!streamUid?.trim() && !videoUrl.trim())) return;
 
         const onKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") onClose();
@@ -71,14 +37,21 @@ export default function VideoPopup({
             document.body.style.overflow = "";
             window.removeEventListener("keydown", onKeyDown);
         };
-    }, [isOpen, onClose, videoUrl]);
+    }, [isOpen, onClose, streamUid, videoUrl]);
 
+    const cleanStreamUid = streamUid?.trim() ?? "";
     const cleanVideoUrl = videoUrl.trim();
+    const canUseStream = Boolean(cleanStreamUid && hasCloudflareStreamConfig());
 
-    if (!isOpen || !cleanVideoUrl) return null;
+    if (!isOpen || (!cleanStreamUid && !cleanVideoUrl)) return null;
 
     const youtube = isYoutubeUrl(cleanVideoUrl);
-    const src = youtube ? toEmbedUrl(cleanVideoUrl) : cleanVideoUrl;
+    const src = youtube
+        ? (toYoutubeEmbedUrl(cleanVideoUrl, {
+              autoplay: true,
+              controls: true,
+          }) ?? cleanVideoUrl)
+        : cleanVideoUrl;
 
     return (
         <div
@@ -105,7 +78,16 @@ export default function VideoPopup({
                 {!fullscreen && <p className={styles.title}>{title}</p>}
 
                 <div className={`${styles.player} ${fullscreen ? styles.fullscreenPlayer : ""}`}>
-                    {youtube ? (
+                    {canUseStream ? (
+                        <CloudflareStreamPlayer
+                            streamUid={cleanStreamUid}
+                            title={title || "Video"}
+                            className={styles.iframe}
+                            autoplay
+                            controls
+                            preload="auto"
+                        />
+                    ) : youtube ? (
                         <iframe
                             className={styles.iframe}
                             src={src}

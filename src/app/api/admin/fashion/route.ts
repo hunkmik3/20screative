@@ -6,6 +6,7 @@ import {
   saveFashionPageContent,
 } from "@/lib/fashionContent";
 import { isFashionPageContent } from "@/data/fashionPage";
+import { syncCloudflareStreamForContent } from "@/lib/streamSync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,8 +45,9 @@ export async function PUT(req: Request) {
   }
 
   try {
+    const streamSync = await syncCloudflareStreamForContent(body);
     await saveFashionPageContent(body);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, streamSync });
   } catch (error) {
     return NextResponse.json(
       {

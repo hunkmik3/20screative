@@ -4,6 +4,7 @@ import { isFashionPageContent } from "@/data/fashionPage";
 import { isEditablePageSlug } from "@/data/pageContent";
 import { COOKIE_NAME, verifyToken } from "@/lib/auth";
 import { loadPageContent, savePageContent } from "@/lib/pageContent";
+import { syncCloudflareStreamForContent } from "@/lib/streamSync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,8 +62,9 @@ export async function PUT(req: Request, context: AdminPageRouteContext) {
   }
 
   try {
+    const streamSync = await syncCloudflareStreamForContent(body);
     await savePageContent(page, body);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, streamSync });
   } catch (error) {
     return NextResponse.json(
       {

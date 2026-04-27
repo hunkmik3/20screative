@@ -3,13 +3,17 @@
 /* eslint-disable @next/next/no-img-element */
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
   type ReactNode,
+  type WheelEvent as ReactWheelEvent,
 } from "react";
+import AutoplayVideoPreview from "@/components/AutoplayVideoPreview";
 import DragResizeFrame from "@/components/DragResizeFrame";
+import RevealText from "@/components/RevealText";
 import VideoPopup from "@/components/VideoPopup";
 import { useScrollFadeIn } from "@/components/useScrollFadeIn";
 import type {
@@ -18,6 +22,11 @@ import type {
   FashionMediaItem,
   FashionPageContent,
 } from "@/data/fashionPage";
+import {
+  getCloudflareStreamDownloadUrl,
+  getCloudflareStreamThumbnailUrl,
+  hasCloudflareStreamConfig,
+} from "@/lib/cloudflareStream";
 import { resolveLayoutStyle } from "@/lib/fashionLayoutStyle";
 import styles from "./FashionEditorialPage.module.css";
 
@@ -25,7 +34,8 @@ export type FashionLayoutKey = "layout" | "mediaLayout" | "textLayout";
 
 type ActiveVideo = {
   title: string;
-  url: string;
+  url?: string;
+  streamUid?: string;
 };
 
 interface FashionEditorialPageProps {
@@ -58,6 +68,7 @@ function MediaFrame({
   mediaUrl,
   mediaKind = "image",
   posterUrl,
+  streamUid,
   title,
   className = "",
   autoplay = true,
@@ -66,31 +77,48 @@ function MediaFrame({
   mediaUrl?: string;
   mediaKind?: "image" | "video";
   posterUrl?: string;
+  streamUid?: string;
   title: string;
   className?: string;
   autoplay?: boolean;
   preload?: "none" | "metadata" | "auto";
 }) {
   const cleanMediaUrl = mediaUrl?.trim();
-  const cleanPosterUrl = posterUrl?.trim();
+  const cleanStreamUid = streamUid?.trim();
+  const canUseStream =
+    mediaKind === "video" &&
+    Boolean(cleanStreamUid) &&
+    hasCloudflareStreamConfig();
+  const streamVideoUrl = getCloudflareStreamDownloadUrl(cleanStreamUid);
+  const streamPosterUrl = getCloudflareStreamThumbnailUrl(cleanStreamUid);
+  const cleanPosterUrl = posterUrl?.trim() || streamPosterUrl?.trim();
+  const previewVideoUrl = canUseStream ? streamVideoUrl : cleanMediaUrl;
 
   return (
     <div className={`${styles.mediaFrame} ${className}`}>
-      {cleanMediaUrl ? (
-        mediaKind === "video" ? (
+      {mediaKind === "video" && previewVideoUrl ? (
+        autoplay ? (
+          <AutoplayVideoPreview
+            src={previewVideoUrl}
+            fallbackSrc={canUseStream ? cleanMediaUrl : undefined}
+            posterUrl={cleanPosterUrl || undefined}
+            className={styles.media}
+            preload="auto"
+          />
+        ) : (
           <video
             className={styles.media}
-            src={cleanMediaUrl}
+            src={previewVideoUrl}
             poster={cleanPosterUrl || undefined}
-            autoPlay={autoplay}
             muted
             loop
             playsInline
             preload={preload}
+            disablePictureInPicture
           />
-        ) : (
-          <img className={styles.media} src={cleanMediaUrl} alt={title} />
         )
+      ) : cleanMediaUrl ? (
+        <img className={styles.media} src={cleanMediaUrl} alt={title} />
       ) : cleanPosterUrl ? (
         <img className={styles.media} src={cleanPosterUrl} alt={title} />
       ) : (
@@ -118,7 +146,12 @@ function PlayButton({
   return (
     <button type="button" className={cls} onClick={onClick}>
       <span className={styles.playIcon} aria-hidden="true" />
-      <span>{label}</span>
+      <span className={styles.playButtonTextWrap}>
+        <span className={styles.playButtonText}>{label}</span>
+        <span className={styles.playButtonTextClone} aria-hidden="true">
+          {label}
+        </span>
+      </span>
     </button>
   );
 }
@@ -186,6 +219,13 @@ function alignClass(align?: FashionBlock["align"]) {
   return styles.alignCenter;
 }
 
+function reviewGridClassFor(count: number) {
+  if (count <= 1) return styles.reviewGrid1Cols;
+  if (count === 2) return styles.reviewGrid2Cols;
+  if (count >= 4) return styles.reviewGrid4Cols;
+  return styles.reviewGrid3Cols;
+}
+
 function LookbookSection({
   block,
   activeIndex,
@@ -200,7 +240,7 @@ function LookbookSection({
   editorMode: boolean;
   variant?: "portrait" | "landscape";
   onSetIndex: (index: number) => void;
-  onPlayVideo: (title: string, url?: string) => void;
+  onPlayVideo: (title: string, url?: string, streamUid?: string) => void;
   renderItem: (
     item: FashionMediaItem,
     index: number,
@@ -227,7 +267,13 @@ function LookbookSection({
     useLoop ? activeIndex + 1 : activeIndex,
   );
   const [animate, setAnimate] = useState(true);
+  const [trackTranslatePx, setTrackTranslatePx] = useState(0);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const lastSyncedActiveRef = useRef(activeIndex);
+  const wheelRemainderRef = useRef(0);
+  const lastWheelStepAtRef = useRef(0);
+  const wheelResetTimerRef = useRef<number | null>(null);
 
   // Sync external activeIndex → displayIndex (e.g. autoplay tick from outside,
   // or other code paths setting active). Only when value actually differs.
@@ -253,14 +299,41 @@ function LookbookSection({
     return () => window.clearTimeout(timer);
   }, [N, editorMode, displayIndex]);
 
-  const slideWidthPct = isLandscape
-    ? showPeek
-      ? 56
-      : 78
-    : showPeek
-      ? 33
-      : 52;
-  const trackTranslate = `calc(50% - ${(displayIndex + 0.5) * slideWidthPct}%)`;
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current;
+    const track = trackRef.current;
+    const slide = track?.children[displayIndex] as HTMLElement | undefined;
+    if (!viewport || !track || !slide) return;
+
+    const updatePosition = () => {
+      const nextTranslate =
+        viewport.clientWidth / 2 - (slide.offsetLeft + slide.offsetWidth / 2);
+      setTrackTranslatePx((current) =>
+        Math.abs(current - nextTranslate) < 0.5 ? current : nextTranslate,
+      );
+    };
+
+    updatePosition();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updatePosition);
+      return () => window.removeEventListener("resize", updatePosition);
+    }
+
+    const observer = new ResizeObserver(updatePosition);
+    observer.observe(viewport);
+    observer.observe(track);
+    observer.observe(slide);
+    return () => observer.disconnect();
+  }, [displayIndex, expandedItems.length, isLandscape, showPeek]);
+
+  useEffect(() => {
+    return () => {
+      if (wheelResetTimerRef.current !== null) {
+        window.clearTimeout(wheelResetTimerRef.current);
+      }
+    };
+  }, []);
 
   const sectionClass = isLandscape ? styles.lookbookLandscape : styles.lookbook;
   const slideClass = isLandscape
@@ -316,6 +389,49 @@ function LookbookSection({
     setDisplayIndex((prev) => prev + 1);
   };
 
+  const handleViewportWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
+    if (editorMode || N < 2) return;
+
+    const horizontalDelta =
+      Math.abs(event.deltaX) > Math.max(8, Math.abs(event.deltaY) * 1.15)
+        ? event.deltaX
+        : event.shiftKey && Math.abs(event.deltaY) > 8
+          ? event.deltaY
+          : 0;
+
+    if (!horizontalDelta) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (wheelResetTimerRef.current !== null) {
+      window.clearTimeout(wheelResetTimerRef.current);
+    }
+    wheelResetTimerRef.current = window.setTimeout(() => {
+      wheelRemainderRef.current = 0;
+      wheelResetTimerRef.current = null;
+    }, 180);
+
+    wheelRemainderRef.current += horizontalDelta;
+
+    const threshold = 78;
+    if (Math.abs(wheelRemainderRef.current) < threshold) return;
+
+    const now = window.performance.now();
+    if (now - lastWheelStepAtRef.current < 150) return;
+
+    const steps = wheelRemainderRef.current > 0 ? 1 : -1;
+    wheelRemainderRef.current -= steps * threshold;
+    lastWheelStepAtRef.current = now;
+    setAnimate(true);
+    setDisplayIndex((prev) => {
+      if ((prev <= 0 && steps < 0) || (prev >= N + 1 && steps > 0)) {
+        return prev;
+      }
+      return prev + steps;
+    });
+  };
+
   // Map a clicked display index (in expandedItems space) to its real items index
   const realIndexFromDisplay = (dispIdx: number): number => {
     if (!useLoop) return dispIdx;
@@ -331,8 +447,8 @@ function LookbookSection({
     const isActiveSlot = useLoop
       ? dispIdx === displayIndex
       : dispIdx === activeIndex;
-    if (isActiveSlot && realItem?.videoUrl) {
-      onPlayVideo(realItem.title, realItem.videoUrl);
+    if (isActiveSlot && (realItem?.videoUrl || realItem?.streamUid)) {
+      onPlayVideo(realItem.title, realItem.videoUrl, realItem.streamUid);
       return;
     }
     if (useLoop) {
@@ -352,20 +468,25 @@ function LookbookSection({
     <section className={`${sectionClass} ${themeClass(block.theme)}`}>
       <FadeIn variant="up" duration={1000}>
         <div className={styles.sectionHeader}>
-          {block.kicker && <p className={styles.kicker}>{block.kicker}</p>}
-          <h2>{block.title}</h2>
+          {block.kicker && (
+            <RevealText as="p" className={styles.kicker} text={block.kicker} />
+          )}
+          <RevealText as="h2" text={block.title} staggerMs={54} />
           {block.subtitle && <p>{block.subtitle}</p>}
         </div>
       </FadeIn>
       <div
+        ref={viewportRef}
         className={`${styles.lookbookViewport} ${
           showPeek ? styles.lookbookPeek : ""
         }`}
+        onWheel={handleViewportWheel}
       >
         <div
+          ref={trackRef}
           className={styles.lookbookTrack}
           style={{
-            transform: `translateX(${trackTranslate})`,
+            transform: `translateX(${trackTranslatePx}px)`,
             transition: animate ? undefined : "none",
           }}
           onTransitionEnd={snapAfterTransition}
@@ -491,9 +612,12 @@ export default function FashionEditorialPage({
     [content.blocks],
   );
 
-  const openVideo = (title: string, url?: string) => {
-    if (!url || editorMode) return;
-    setActiveVideo({ title, url });
+  const openVideo = (title: string, url?: string, streamUid?: string) => {
+    const cleanUrl = url?.trim();
+    const cleanStreamUid = streamUid?.trim();
+    const canUseStream = Boolean(cleanStreamUid && hasCloudflareStreamConfig());
+    if (editorMode || (!cleanUrl && !canUseStream)) return;
+    setActiveVideo({ title, url: cleanUrl, streamUid: cleanStreamUid });
   };
 
   const setSlide = (block: FashionBlock, nextIndex: number) => {
@@ -523,17 +647,16 @@ export default function FashionEditorialPage({
     const mediaInnerStyle = editorMode
       ? undefined
       : resolveLayoutStyle(item.mediaLayout);
-    const isLookbookVariant =
-      variant === "lookbook" || variant === "lookbookLandscape";
     const mediaCluster = (
       <div className={styles.itemMediaInner} style={mediaInnerStyle}>
         <MediaFrame
           mediaUrl={item.mediaUrl}
           mediaKind={item.mediaKind}
           posterUrl={item.posterUrl}
+          streamUid={item.streamUid}
           title={item.title}
           className={mediaClassFor(item.aspect)}
-          autoplay={!isLookbookVariant}
+          autoplay={item.mediaKind === "video"}
         />
         {overlayCaption && (
           <div className={styles.itemCaptionOverlay}>
@@ -541,8 +664,8 @@ export default function FashionEditorialPage({
             {item.subtitle && <p>{item.subtitle}</p>}
           </div>
         )}
-        {item.videoUrl && (
-          <span className={styles.inlinePlay}>View film</span>
+        {(item.videoUrl || item.streamUid) && (
+          <span className={styles.inlinePlay}>View video</span>
         )}
       </div>
     );
@@ -573,14 +696,14 @@ export default function FashionEditorialPage({
             : "";
     const className = `${styles.itemCard} ${variantClass}`;
 
-    if (item.videoUrl && !editorMode) {
+    if ((item.videoUrl || item.streamUid) && !editorMode) {
       return (
         <button
           key={item.id}
           type="button"
           className={className}
           style={itemStyle}
-          onClick={() => openVideo(item.title, item.videoUrl)}
+          onClick={() => openVideo(item.title, item.videoUrl, item.streamUid)}
         >
           {card}
         </button>
@@ -611,6 +734,7 @@ export default function FashionEditorialPage({
             mediaUrl={block.mediaUrl}
             mediaKind={block.mediaKind}
             posterUrl={block.posterUrl}
+            streamUid={block.streamUid}
             title={block.title}
             className={styles.heroMedia}
             preload="auto"
@@ -619,27 +743,34 @@ export default function FashionEditorialPage({
         <div className={styles.heroShade} />
         <div className={styles.heroCopy} style={textStyle}>
           {block.kicker && (
-            <FadeIn variant="up" delay={100} duration={1000}>
-              <p className={styles.heroKicker}>{block.kicker}</p>
-            </FadeIn>
+            <RevealText
+              as="p"
+              className={styles.heroKicker}
+              text={block.kicker}
+              delayMs={120}
+            />
           )}
-          <FadeIn variant="up" delay={220} duration={1100}>
-            <h1>{block.title}</h1>
-          </FadeIn>
+          <RevealText as="h1" text={block.title} delayMs={220} staggerMs={70} />
           {block.subtitle && (
-            <FadeIn variant="up" delay={360} duration={1100}>
-              <p className={styles.heroSubtitle}>{block.subtitle}</p>
-            </FadeIn>
+            <RevealText
+              as="p"
+              className={styles.heroSubtitle}
+              text={block.subtitle}
+              delayMs={420}
+              staggerMs={42}
+            />
           )}
           <FadeIn variant="up" delay={500} duration={1000}>
             <div className={styles.actionRow}>
-              {block.videoUrl && (
+              {(block.videoUrl || block.streamUid) && (
                 <PlayButton
                   label={block.ctaLabel || "Xem video"}
-                  onClick={() => openVideo(block.title, block.videoUrl)}
+                  onClick={() =>
+                    openVideo(block.title, block.videoUrl, block.streamUid)
+                  }
                 />
               )}
-              {!block.videoUrl && block.ctaLabel && block.ctaHref && (
+              {!(block.videoUrl || block.streamUid) && block.ctaLabel && block.ctaHref && (
                 <a className={styles.textLink} href={block.ctaHref}>
                   {block.ctaLabel}
                 </a>
@@ -657,11 +788,11 @@ export default function FashionEditorialPage({
     >
       {block.kicker && (
         <FadeIn variant="up" duration={900}>
-          <p className={styles.kicker}>{block.kicker}</p>
+          <RevealText as="p" className={styles.kicker} text={block.kicker} />
         </FadeIn>
       )}
       <FadeIn variant="up" delay={120} duration={1100}>
-        <h2>{block.title}</h2>
+        <RevealText as="h2" text={block.title} staggerMs={58} />
       </FadeIn>
       {block.body && (
         <FadeIn variant="up" delay={260} duration={1000}>
@@ -677,11 +808,11 @@ export default function FashionEditorialPage({
     >
       {block.kicker && (
         <FadeIn variant="up" duration={900}>
-          <p className={styles.kicker}>{block.kicker}</p>
+          <RevealText as="p" className={styles.kicker} text={block.kicker} />
         </FadeIn>
       )}
       <FadeIn variant="up" delay={120} duration={1100}>
-        <h2>{block.title}</h2>
+        <RevealText as="h2" text={block.title} staggerMs={54} />
       </FadeIn>
       {block.body && (
         <FadeIn variant="up" delay={260} duration={1000}>
@@ -715,6 +846,7 @@ export default function FashionEditorialPage({
           mediaUrl={block.mediaUrl}
           mediaKind={block.mediaKind}
           posterUrl={block.posterUrl}
+          streamUid={block.streamUid}
           title={block.title}
           className={styles.featureMedia}
         />
@@ -727,17 +859,21 @@ export default function FashionEditorialPage({
         </FadeIn>
         <FadeIn variant="right" delay={150} duration={1100}>
           <div className={styles.featureCopy} style={textStyle}>
-            {block.kicker && <p className={styles.kicker}>{block.kicker}</p>}
-            <h2>{block.title}</h2>
+            {block.kicker && (
+              <RevealText as="p" className={styles.kicker} text={block.kicker} />
+            )}
+            <RevealText as="h2" text={block.title} staggerMs={54} />
             {block.subtitle && <p className={styles.lede}>{block.subtitle}</p>}
             {block.body && <p>{block.body}</p>}
-            {block.videoUrl && (
+            {(block.videoUrl || block.streamUid) && (
               <PlayButton
                 label={block.ctaLabel ?? "View film"}
-                onClick={() => openVideo(block.title, block.videoUrl)}
+                onClick={() =>
+                  openVideo(block.title, block.videoUrl, block.streamUid)
+                }
               />
             )}
-            {!block.videoUrl && block.ctaLabel && block.ctaHref && (
+            {!(block.videoUrl || block.streamUid) && block.ctaLabel && block.ctaHref && (
               <a className={styles.textLinkDark} href={block.ctaHref}>
                 {block.ctaLabel}
               </a>
@@ -759,21 +895,31 @@ export default function FashionEditorialPage({
           mediaUrl={block.mediaUrl}
           mediaKind={block.mediaKind}
           posterUrl={block.posterUrl}
+          streamUid={block.streamUid}
           title={block.title}
           className={styles.lookFeatureMedia}
         />
         {block.lookNumber && (
           <span className={styles.lookFeatureBadge}>{block.lookNumber}</span>
         )}
-        {block.videoUrl && !editorMode && (
+        {(block.videoUrl || block.streamUid) && !editorMode && (
           <button
             type="button"
             className={styles.lookFeaturePlay}
-            onClick={() => openVideo(block.title, block.videoUrl)}
+            onClick={() =>
+              openVideo(block.title, block.videoUrl, block.streamUid)
+            }
             aria-label={block.ctaLabel || "View film"}
           >
             <span className={styles.playIcon} aria-hidden="true" />
-            <span>{block.ctaLabel || "Xem phim"}</span>
+            <span className={styles.playButtonTextWrap}>
+              <span className={styles.playButtonText}>
+                {block.ctaLabel || "Xem phim"}
+              </span>
+              <span className={styles.playButtonTextClone} aria-hidden="true">
+                {block.ctaLabel || "Xem phim"}
+              </span>
+            </span>
           </button>
         )}
       </div>
@@ -790,9 +936,9 @@ export default function FashionEditorialPage({
         <FadeIn variant="up" delay={250} duration={1000}>
           <div className={styles.lookFeatureCopy} style={textStyle}>
             {block.kicker && (
-              <p className={styles.kicker}>{block.kicker}</p>
+              <RevealText as="p" className={styles.kicker} text={block.kicker} />
             )}
-            <h2>{block.title}</h2>
+            <RevealText as="h2" text={block.title} staggerMs={48} />
             {block.subtitle && <p>{block.subtitle}</p>}
           </div>
         </FadeIn>
@@ -829,6 +975,7 @@ export default function FashionEditorialPage({
             mediaUrl={item.mediaUrl}
             mediaKind={item.mediaKind}
             posterUrl={item.posterUrl}
+            streamUid={item.streamUid}
             title={item.title}
             className={mediaClassFor(item.aspect)}
           />
@@ -843,17 +990,19 @@ export default function FashionEditorialPage({
           >
             <div className={styles.duoCard} style={itemStyle}>
               {wrapItemMedia(block, item, cardInner)}
-              {item.showPlus !== false && item.videoUrl && !editorMode && (
+              {item.showPlus !== false &&
+                (item.videoUrl || item.streamUid) &&
+                !editorMode && (
                 <button
                   type="button"
                   className={styles.duoPlus}
                   onClick={(event) => {
                     event.stopPropagation();
-                    openVideo(item.title, item.videoUrl);
+                    openVideo(item.title, item.videoUrl, item.streamUid);
                   }}
-                  aria-label={`Mở ${item.title}`}
+                  aria-label={`View video ${item.title}`}
                 >
-                  <span aria-hidden="true">+</span>
+                  <span>View video</span>
                 </button>
               )}
               {list.length > 1 && (
@@ -920,8 +1069,10 @@ export default function FashionEditorialPage({
     <section className={`${styles.blockShell} ${themeClass(block.theme)}`}>
       <FadeIn variant="up" duration={1000}>
         <div className={styles.sectionHeader}>
-          {block.kicker && <p className={styles.kicker}>{block.kicker}</p>}
-          <h2>{block.title}</h2>
+          {block.kicker && (
+            <RevealText as="p" className={styles.kicker} text={block.kicker} />
+          )}
+          <RevealText as="h2" text={block.title} staggerMs={54} />
           {block.subtitle && <p>{block.subtitle}</p>}
         </div>
       </FadeIn>
@@ -947,8 +1098,10 @@ export default function FashionEditorialPage({
       <FadeIn variant="up" duration={1000}>
         <section className={`${styles.blockShell} ${themeClass(block.theme)}`}>
           <div className={styles.sectionHeader}>
-            {block.kicker && <p className={styles.kicker}>{block.kicker}</p>}
-            <h2>{block.title}</h2>
+            {block.kicker && (
+              <RevealText as="p" className={styles.kicker} text={block.kicker} />
+            )}
+            <RevealText as="h2" text={block.title} staggerMs={54} />
             {block.subtitle && <p>{block.subtitle}</p>}
           </div>
           <div className={styles.carousel}>
@@ -1022,31 +1175,38 @@ export default function FashionEditorialPage({
             mediaUrl={block.mediaUrl}
             mediaKind={block.mediaKind}
             posterUrl={block.posterUrl}
+            streamUid={block.streamUid}
             title={block.title}
             className={styles.videoTeaserMedia}
-            autoplay={false}
+            autoplay={block.autoplay !== false}
           />
           <div className={styles.videoTeaserOverlay}>
             {block.kicker && (
               <FadeIn variant="up" delay={300} duration={900}>
-                <p className={styles.videoTeaserKicker}>{block.kicker}</p>
+                <RevealText
+                  as="p"
+                  className={styles.videoTeaserKicker}
+                  text={block.kicker}
+                />
               </FadeIn>
             )}
             <FadeIn variant="up" delay={420} duration={1000}>
-              <h2>{block.title}</h2>
+              <RevealText as="h2" text={block.title} staggerMs={54} />
             </FadeIn>
             {block.subtitle && (
               <FadeIn variant="up" delay={540} duration={950}>
                 <p>{block.subtitle}</p>
               </FadeIn>
             )}
-            {block.videoUrl && (
+            {(block.videoUrl || block.streamUid) && (
               <FadeIn variant="scale" delay={660} duration={900}>
                 <div className={styles.videoTeaserPlayPulse}>
                   <PlayButton
                     label={block.ctaLabel || "Xem teaser"}
                     variant="circle"
-                    onClick={() => openVideo(block.title, block.videoUrl)}
+                    onClick={() =>
+                      openVideo(block.title, block.videoUrl, block.streamUid)
+                    }
                   />
                 </div>
               </FadeIn>
@@ -1064,8 +1224,10 @@ export default function FashionEditorialPage({
     >
       <FadeIn variant="up" duration={1000}>
         <div className={styles.sectionHeader}>
-          {block.kicker && <p className={styles.kicker}>{block.kicker}</p>}
-          <h2>{block.title}</h2>
+          {block.kicker && (
+            <RevealText as="p" className={styles.kicker} text={block.kicker} />
+          )}
+          <RevealText as="h2" text={block.title} staggerMs={54} />
           {block.subtitle && <p>{block.subtitle}</p>}
         </div>
       </FadeIn>
@@ -1088,8 +1250,10 @@ export default function FashionEditorialPage({
     <section className={`${styles.worldGrid} ${themeClass(block.theme)}`}>
       <FadeIn variant="up" duration={1000}>
         <div className={styles.sectionHeader}>
-          {block.kicker && <p className={styles.kicker}>{block.kicker}</p>}
-          <h2>{block.title}</h2>
+          {block.kicker && (
+            <RevealText as="p" className={styles.kicker} text={block.kicker} />
+          )}
+          <RevealText as="h2" text={block.title} staggerMs={54} />
           {block.subtitle && <p>{block.subtitle}</p>}
         </div>
       </FadeIn>
@@ -1117,38 +1281,45 @@ export default function FashionEditorialPage({
     </section>
   );
 
-  const renderReviews = (block: FashionBlock) => (
-    <section className={`${styles.reviewsSection} ${themeClass(block.theme)}`}>
-      <FadeIn variant="up" duration={1000}>
-        <div className={styles.sectionHeader}>
-          {block.kicker && <p className={styles.kicker}>{block.kicker}</p>}
-          <h2>{block.title}</h2>
-          {block.subtitle && <p>{block.subtitle}</p>}
+  const renderReviews = (block: FashionBlock) => {
+    const items = block.items ?? [];
+    const reviewGridClass = `${styles.reviewGrid} ${reviewGridClassFor(items.length)}`;
+    return (
+      <section className={`${styles.reviewsSection} ${themeClass(block.theme)}`}>
+        <FadeIn variant="up" duration={1000}>
+          <div className={styles.sectionHeader}>
+            {block.kicker && (
+              <RevealText as="p" className={styles.kicker} text={block.kicker} />
+            )}
+            <RevealText as="h2" text={block.title} staggerMs={54} />
+            {block.subtitle && <p>{block.subtitle}</p>}
+          </div>
+        </FadeIn>
+        <div className={reviewGridClass}>
+          {items.map((item, index) => (
+            <FadeIn
+              key={item.id}
+              className={styles.reviewReveal}
+              variant="right"
+              delay={120 + index * 180}
+              duration={950}
+            >
+              <article className={styles.reviewCard}>
+                <span className={styles.itemNumber}>
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                {item.subtitle && <blockquote>{item.subtitle}</blockquote>}
+                <footer>
+                  <strong>{item.title}</strong>
+                  {item.meta && <span>{item.meta}</span>}
+                </footer>
+              </article>
+            </FadeIn>
+          ))}
         </div>
-      </FadeIn>
-      <div className={styles.reviewGrid}>
-        {(block.items ?? []).map((item, index) => (
-          <FadeIn
-            key={item.id}
-            variant="up"
-            delay={150 + index * 130}
-            duration={1100}
-          >
-            <article className={styles.reviewCard}>
-              <span className={styles.itemNumber}>
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              {item.subtitle && <blockquote>{item.subtitle}</blockquote>}
-              <footer>
-                <strong>{item.title}</strong>
-                {item.meta && <span>{item.meta}</span>}
-              </footer>
-            </article>
-          </FadeIn>
-        ))}
-      </div>
-    </section>
-  );
+      </section>
+    );
+  };
 
   const renderSpacer = (block: FashionBlock) => (
     <div
@@ -1163,17 +1334,18 @@ export default function FashionEditorialPage({
         mediaUrl={block.mediaUrl}
         mediaKind={block.mediaKind}
         posterUrl={block.posterUrl}
+        streamUid={block.streamUid}
         title={block.title}
         className={styles.ctaMedia}
       />
       <div className={styles.ctaCopy}>
         {block.kicker && (
           <FadeIn variant="up" duration={1000}>
-            <p className={styles.kicker}>{block.kicker}</p>
+            <RevealText as="p" className={styles.kicker} text={block.kicker} />
           </FadeIn>
         )}
         <FadeIn variant="up" delay={120} duration={1100}>
-          <h2>{block.title}</h2>
+          <RevealText as="h2" text={block.title} staggerMs={54} />
         </FadeIn>
         {block.subtitle && (
           <FadeIn variant="up" delay={250} duration={1000}>
@@ -1234,7 +1406,12 @@ export default function FashionEditorialPage({
     const layoutStyle = resolveLayoutStyle(block.layout);
     if (!editorMode) {
       return (
-        <div key={block.id} id={block.id} style={layoutStyle}>
+        <div
+          key={block.id}
+          id={block.id}
+          className={styles.publicBlock}
+          style={layoutStyle}
+        >
           {node}
         </div>
       );
@@ -1278,6 +1455,7 @@ export default function FashionEditorialPage({
           isOpen={Boolean(activeVideo)}
           title={activeVideo?.title ?? ""}
           videoUrl={activeVideo?.url ?? ""}
+          streamUid={activeVideo?.streamUid}
           onClose={() => setActiveVideo(null)}
           fullscreen
         />

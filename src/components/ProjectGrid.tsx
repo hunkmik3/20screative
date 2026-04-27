@@ -2,9 +2,17 @@
 
 import { useCallback, useState, type ReactNode } from "react";
 import Image from "next/image";
+import AutoplayVideoPreview from "@/components/AutoplayVideoPreview";
 import DragResizeFrame from "@/components/DragResizeFrame";
+import RevealText from "@/components/RevealText";
 import type { FashionLayout } from "@/data/fashionPage";
+import {
+    getCloudflareStreamDownloadUrl,
+    getCloudflareStreamThumbnailUrl,
+    hasCloudflareStreamConfig,
+} from "@/lib/cloudflareStream";
 import { resolveLayoutStyle } from "@/lib/fashionLayoutStyle";
+import { isVideoFileUrl, isYoutubeUrl } from "@/lib/videoEmbed";
 import styles from "./ProjectGrid.module.css";
 import VideoLookbook from "./VideoLookbook";
 import VideoPopup from "./VideoPopup";
@@ -16,6 +24,8 @@ export interface VideoProject {
     description: string;
     duration: string;
     videoUrl: string;
+    streamUid?: string;
+    streamSourceUrl?: string;
     layout?: FashionLayout;
 }
 
@@ -24,6 +34,8 @@ export interface NewestSeries {
     description: string;
     thumbnail: string;
     videoUrl: string;
+    streamUid?: string;
+    streamSourceUrl?: string;
     layout?: FashionLayout;
 }
 
@@ -62,7 +74,9 @@ export default function ProjectGrid({
     const [activeVideo, setActiveVideo] = useState<VideoProject | null>(null);
 
     const openVideo = useCallback((video: VideoProject) => {
-        if (!hasAsset(video.videoUrl)) return;
+        const canUseStream =
+            hasAsset(video.streamUid) && hasCloudflareStreamConfig();
+        if (!canUseStream && !hasAsset(video.videoUrl)) return;
         setActiveVideo(video);
     }, []);
 
@@ -128,18 +142,93 @@ export default function ProjectGrid({
         );
     };
 
+    const renderPreviewMedia = ({
+        title,
+        thumbnail,
+        videoUrl,
+        streamUid,
+        className,
+        width,
+        height,
+        preload = "metadata",
+    }: Pick<VideoProject, "title" | "thumbnail" | "videoUrl" | "streamUid"> & {
+        className: string;
+        width: number;
+        height: number;
+        preload?: "none" | "metadata" | "auto";
+    }) => {
+        const canUseStream = hasAsset(streamUid) && hasCloudflareStreamConfig();
+        const streamVideoUrl = getCloudflareStreamDownloadUrl(streamUid);
+        const streamThumbnail = getCloudflareStreamThumbnailUrl(streamUid);
+        const posterUrl =
+            hasAsset(thumbnail) && !isVideoFileUrl(thumbnail)
+                ? thumbnail
+                : streamThumbnail ?? "";
+
+        if (canUseStream && streamVideoUrl) {
+            return (
+                <AutoplayVideoPreview
+                    src={streamVideoUrl}
+                    fallbackSrc={
+                        hasAsset(videoUrl) && !isYoutubeUrl(videoUrl)
+                            ? videoUrl
+                            : undefined
+                    }
+                    preload={preload}
+                    className={className}
+                    posterUrl={hasAsset(posterUrl) ? posterUrl : undefined}
+                />
+            );
+        }
+
+        if (hasAsset(videoUrl) && !isYoutubeUrl(videoUrl)) {
+            return (
+                <AutoplayVideoPreview
+                    src={videoUrl}
+                    posterUrl={hasAsset(posterUrl) ? posterUrl : undefined}
+                    className={className}
+                    preload={preload}
+                />
+            );
+        }
+
+        if (hasAsset(posterUrl)) {
+            return (
+                <Image
+                    src={posterUrl}
+                    alt={title}
+                    width={width}
+                    height={height}
+                    className={className}
+                />
+            );
+        }
+
+        return <div className={styles.mediaPlaceholder}>No media</div>;
+    };
+
     return (
         <div className={styles.wrapper}>
             {/* Page Header */}
             <div className={styles.header}>
-                <h1 className={styles.pageTitle}>{categoryTitle}</h1>
+                <RevealText
+                    as="h1"
+                    className={styles.pageTitle}
+                    text={categoryTitle}
+                    staggerMs={46}
+                />
                 <p className={styles.pageSubtitle}>{categoryDescription}</p>
             </div>
 
             <div className={styles.separator} />
 
             {/* ===== SECTION 1: LATEST VIDEOS ===== */}
-            <h2 className={styles.sectionTitle}>Latest Videos</h2>
+            <RevealText
+                as="h2"
+                className={styles.sectionTitle}
+                text="Latest Videos"
+                staggerMs={42}
+            />
 
             <div className={styles.latestGrid}>
                 {/* Featured Large Card */}
@@ -154,19 +243,16 @@ export default function ProjectGrid({
                         children: (
                             <>
                         <div className={styles.thumbnailWrapper}>
-                            {hasAsset(featured.thumbnail) ? (
-                                <Image
-                                    src={featured.thumbnail}
-                                    alt={featured.title}
-                                    width={800}
-                                    height={1000}
-                                    className={styles.thumbnail}
-                                />
-                            ) : (
-                                <div className={styles.mediaPlaceholder}>
-                                    No media
-                                </div>
-                            )}
+                            {renderPreviewMedia({
+                                title: featured.title,
+                                thumbnail: featured.thumbnail,
+                                videoUrl: featured.videoUrl,
+                                streamUid: featured.streamUid,
+                                className: styles.thumbnail,
+                                width: 800,
+                                height: 1000,
+                                preload: "auto",
+                            })}
                             <span className={styles.duration}>
                                 {featured.duration}
                             </span>
@@ -194,20 +280,16 @@ export default function ProjectGrid({
                             children: (
                                 <>
                             <div className={styles.thumbnailWrapper}>
-                                {hasAsset(video.thumbnail) ? (
-                                    <Image
-                                        src={video.thumbnail}
-                                        alt={video.title}
-                                        width={400}
-                                        height={225}
-                                        className={styles.thumbnail}
-                                        loading={index < 2 ? "eager" : "lazy"}
-                                    />
-                                ) : (
-                                    <div className={styles.mediaPlaceholder}>
-                                        No media
-                                    </div>
-                                )}
+                                {renderPreviewMedia({
+                                    title: video.title,
+                                    thumbnail: video.thumbnail,
+                                    videoUrl: video.videoUrl,
+                                    streamUid: video.streamUid,
+                                    className: styles.thumbnail,
+                                    width: 400,
+                                    height: 225,
+                                    preload: index < 2 ? "auto" : "metadata",
+                                })}
                                 <span className={styles.duration}>
                                     {video.duration}
                                 </span>
@@ -226,7 +308,12 @@ export default function ProjectGrid({
             <div className={styles.separator} />
 
             {/* ===== SECTION 2: NEWEST VIDEO ===== */}
-            <h2 className={styles.sectionTitle}>Newest Video</h2>
+            <RevealText
+                as="h2"
+                className={styles.sectionTitle}
+                text="Newest Video"
+                staggerMs={42}
+            />
 
             {renderEditableFrame({
                 key: "newest",
@@ -242,22 +329,20 @@ export default function ProjectGrid({
                         thumbnail: newestSeries.thumbnail,
                         duration: "",
                         videoUrl: newestSeries.videoUrl,
+                        streamUid: newestSeries.streamUid,
                     }),
                 children: (
                     <>
-                {hasAsset(newestSeries.thumbnail) ? (
-                    <Image
-                        src={newestSeries.thumbnail}
-                        alt={newestSeries.title}
-                        width={1400}
-                        height={500}
-                        className={styles.bannerImage}
-                    />
-                ) : (
-                    <div className={`${styles.mediaPlaceholder} ${styles.bannerPlaceholder}`}>
-                        No media
-                    </div>
-                )}
+                {renderPreviewMedia({
+                    title: newestSeries.title,
+                    thumbnail: newestSeries.thumbnail,
+                    videoUrl: newestSeries.videoUrl,
+                    streamUid: newestSeries.streamUid,
+                    className: styles.bannerImage,
+                    width: 1400,
+                    height: 500,
+                    preload: "auto",
+                })}
                 <div className={styles.bannerOverlay}>
                     <h3 className={styles.bannerTitle}>
                         {newestSeries.title}
@@ -279,6 +364,7 @@ export default function ProjectGrid({
                                 thumbnail: newestSeries.thumbnail,
                                 duration: "",
                                 videoUrl: newestSeries.videoUrl,
+                                streamUid: newestSeries.streamUid,
                             });
                         }}
                     >
@@ -316,7 +402,19 @@ export default function ProjectGrid({
                               const target = `featuredVideo:${idx}`;
                               const selected = selectedTarget === target;
                               const hasVideoUrl = hasAsset(video.videoUrl);
-                              const hasThumbnail = hasAsset(video.thumbnail);
+                              const canUseStream =
+                                  hasAsset(video.streamUid) &&
+                                  hasCloudflareStreamConfig();
+                              const streamVideoUrl =
+                                  getCloudflareStreamDownloadUrl(video.streamUid);
+                              const hasThumbnail =
+                                  hasAsset(video.thumbnail) &&
+                                  !isVideoFileUrl(video.thumbnail);
+                              const streamThumbnail =
+                                  getCloudflareStreamThumbnailUrl(video.streamUid);
+                              const posterUrl = hasThumbnail
+                                  ? video.thumbnail
+                                  : streamThumbnail ?? undefined;
                               return (
                                   <div
                                       className={`${styles.lookbookEditableSlot} ${
@@ -335,12 +433,24 @@ export default function ProjectGrid({
                                               onSelectTarget?.(target);
                                           }
                                       }}
-                                  >
+                                      >
                                       <div className={styles.lookbookSlotMedia}>
-                                          {hasVideoUrl ? (
+                                          {canUseStream && streamVideoUrl ? (
+                                              <AutoplayVideoPreview
+                                                  src={streamVideoUrl}
+                                                  fallbackSrc={
+                                                      hasVideoUrl && !isYoutubeUrl(video.videoUrl)
+                                                          ? video.videoUrl
+                                                          : undefined
+                                                  }
+                                                  className={styles.lookbookSlotImage}
+                                                  preload="metadata"
+                                                  posterUrl={posterUrl}
+                                              />
+                                          ) : hasVideoUrl ? (
                                               <video
                                                   src={video.videoUrl}
-                                                  poster={hasThumbnail ? video.thumbnail : undefined}
+                                                  poster={posterUrl}
                                                   muted
                                                   loop
                                                   playsInline
@@ -373,9 +483,12 @@ export default function ProjectGrid({
             <div className={styles.separator} />
 
             <VideoPopup
-                isOpen={Boolean(activeVideo?.videoUrl.trim())}
+                isOpen={Boolean(
+                    activeVideo?.streamUid?.trim() || activeVideo?.videoUrl.trim(),
+                )}
                 title={activeVideo?.title ?? ""}
                 videoUrl={activeVideo?.videoUrl ?? ""}
+                streamUid={activeVideo?.streamUid}
                 onClose={closeVideo}
             />
         </div>

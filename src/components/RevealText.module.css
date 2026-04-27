@@ -1,0 +1,41 @@
+.word {
+  display: inline-block;
+  margin-right: 0.24em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.word:last-child {
+  margin-right: 0;
+}
+
+.inner {
+  display: inline-block;
+  opacity: 0.001;
+  transition:
+    opacity 0.72s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.82s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.revealTextUp .inner {
+  transform: translate3d(0, 105%, 0);
+}
+
+.revealTextDown .inner {
+  transform: translate3d(0, -105%, 0);
+}
+
+.revealTextVisible .inner {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inner {
+    opacity: 1;
+    transform: none !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}

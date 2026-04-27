@@ -10,6 +10,7 @@ import {
   loadLegacyPageContent,
   saveLegacyPageContent,
 } from "@/lib/legacyPageContent";
+import { syncCloudflareStreamForContent } from "@/lib/streamSync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,8 +73,9 @@ export async function PUT(req: Request, context: AdminLegacyPageRouteContext) {
   }
 
   try {
+    const streamSync = await syncCloudflareStreamForContent(normalized);
     await saveLegacyPageContent(page, normalized);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, streamSync });
   } catch (error) {
     return NextResponse.json(
       {

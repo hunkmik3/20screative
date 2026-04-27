@@ -2,9 +2,17 @@
 
 import { useCallback, useState, type ReactNode } from "react";
 import Image from "next/image";
+import AutoplayVideoPreview from "@/components/AutoplayVideoPreview";
 import DragResizeFrame from "@/components/DragResizeFrame";
+import RevealText from "@/components/RevealText";
 import type { FashionLayout } from "@/data/fashionPage";
+import {
+    getCloudflareStreamDownloadUrl,
+    getCloudflareStreamThumbnailUrl,
+    hasCloudflareStreamConfig,
+} from "@/lib/cloudflareStream";
 import { resolveLayoutStyle } from "@/lib/fashionLayoutStyle";
+import { isVideoFileUrl, isYoutubeUrl } from "@/lib/videoEmbed";
 import type { FeaturedSeries, VideoProject } from "./ProjectGrid";
 import styles from "./SportGrid.module.css";
 import VideoLookbook from "./VideoLookbook";
@@ -16,6 +24,8 @@ export interface SportProgram {
     title: string;
     subtitle: string;
     videoUrl: string;
+    streamUid?: string;
+    streamSourceUrl?: string;
     layout?: FashionLayout;
 }
 
@@ -31,7 +41,7 @@ interface SportGridProps {
 }
 
 const hasAsset = (value?: string | null) => Boolean(value?.trim());
-type PlayableVideo = Pick<VideoProject, "title" | "videoUrl">;
+type PlayableVideo = Pick<VideoProject, "title" | "videoUrl" | "streamUid">;
 
 export default function SportGrid({
     programs,
@@ -46,7 +56,9 @@ export default function SportGrid({
     const [activeVideo, setActiveVideo] = useState<PlayableVideo | null>(null);
 
     const openVideo = useCallback((video: PlayableVideo) => {
-        if (!hasAsset(video.videoUrl)) return;
+        const canUseStream =
+            hasAsset(video.streamUid) && hasCloudflareStreamConfig();
+        if (!canUseStream && !hasAsset(video.videoUrl)) return;
         setActiveVideo(video);
     }, []);
 
@@ -107,7 +119,17 @@ export default function SportGrid({
             const target = `${targetPrefix}:${idx}`;
             const selected = selectedTarget === target;
             const hasVideoUrl = hasAsset(video.videoUrl);
-            const hasThumbnail = hasAsset(video.thumbnail);
+            const canUseNativePreview =
+                hasVideoUrl && !isYoutubeUrl(video.videoUrl);
+            const canUseStream =
+                hasAsset(video.streamUid) && hasCloudflareStreamConfig();
+            const streamVideoUrl = getCloudflareStreamDownloadUrl(video.streamUid);
+            const hasThumbnail =
+                hasAsset(video.thumbnail) && !isVideoFileUrl(video.thumbnail);
+            const streamThumbnail = getCloudflareStreamThumbnailUrl(video.streamUid);
+            const posterUrl = hasThumbnail
+                ? video.thumbnail
+                : streamThumbnail ?? undefined;
             return (
                 <DragResizeFrame
                     enabled={editorMode}
@@ -134,10 +156,20 @@ export default function SportGrid({
                         }}
                     >
                         <div className={styles.lookbookSlotMedia}>
-                            {hasVideoUrl ? (
+                            {canUseStream && streamVideoUrl ? (
+                                <AutoplayVideoPreview
+                                    src={streamVideoUrl}
+                                    fallbackSrc={
+                                        canUseNativePreview ? video.videoUrl : undefined
+                                    }
+                                    className={styles.lookbookSlotImage}
+                                    preload="metadata"
+                                    posterUrl={posterUrl}
+                                />
+                            ) : canUseNativePreview ? (
                                 <video
                                     src={video.videoUrl}
-                                    poster={hasThumbnail ? video.thumbnail : undefined}
+                                    poster={posterUrl}
                                     muted
                                     loop
                                     playsInline
@@ -175,6 +207,7 @@ export default function SportGrid({
                 videos={openingSeries.videos}
                 onPlay={openVideo}
                 autoplay={!editorMode}
+                openOnCardClick={!editorMode}
                 renderItem={
                     editorMode
                         ? (video, idx, role) =>
@@ -190,7 +223,45 @@ export default function SportGrid({
                         {renderEditableCard(
                             horizontalProgram,
                             <>
-                            {hasAsset(horizontalProgram.thumbnail) ? (
+                            {hasAsset(horizontalProgram.streamUid) &&
+                            hasCloudflareStreamConfig() &&
+                            getCloudflareStreamDownloadUrl(horizontalProgram.streamUid) ? (
+                                <AutoplayVideoPreview
+                                    src={
+                                        getCloudflareStreamDownloadUrl(
+                                            horizontalProgram.streamUid,
+                                        ) ?? ""
+                                    }
+                                    fallbackSrc={
+                                        hasAsset(horizontalProgram.videoUrl) &&
+                                        !isYoutubeUrl(horizontalProgram.videoUrl)
+                                            ? horizontalProgram.videoUrl
+                                            : undefined
+                                    }
+                                    className={`${styles.cardImage} ${styles.cardVideoPreview}`}
+                                    preload="auto"
+                                    posterUrl={
+                                        hasAsset(horizontalProgram.thumbnail) &&
+                                        !isVideoFileUrl(horizontalProgram.thumbnail)
+                                            ? horizontalProgram.thumbnail
+                                            : undefined
+                                    }
+                                />
+                            ) : hasAsset(horizontalProgram.videoUrl) &&
+                              !isYoutubeUrl(horizontalProgram.videoUrl) ? (
+                                <AutoplayVideoPreview
+                                    src={horizontalProgram.videoUrl}
+                                    posterUrl={
+                                        hasAsset(horizontalProgram.thumbnail) &&
+                                        !isVideoFileUrl(horizontalProgram.thumbnail)
+                                            ? horizontalProgram.thumbnail
+                                            : undefined
+                                    }
+                                    className={`${styles.cardImage} ${styles.cardVideoPreview}`}
+                                    preload="auto"
+                                />
+                            ) : hasAsset(horizontalProgram.thumbnail) &&
+                              !isVideoFileUrl(horizontalProgram.thumbnail) ? (
                                 <Image
                                     src={horizontalProgram.thumbnail}
                                     alt={horizontalProgram.title}
@@ -204,9 +275,12 @@ export default function SportGrid({
                                 </div>
                             )}
                             <div className={styles.cardOverlay}>
-                                <h2 className={styles.cardTitle}>
-                                    {horizontalProgram.title}
-                                </h2>
+                                <RevealText
+                                    as="h2"
+                                    className={styles.cardTitle}
+                                    text={horizontalProgram.title}
+                                    staggerMs={48}
+                                />
                                 <p className={styles.cardSubtitle}>
                                     {horizontalProgram.subtitle}
                                 </p>
@@ -219,7 +293,17 @@ export default function SportGrid({
                                         openVideo(horizontalProgram);
                                     }}
                                 >
-                                    View The Program
+                                    <span className={styles.cardBtnTextWrap}>
+                                        <span className={styles.cardBtnText}>
+                                            View The Program
+                                        </span>
+                                        <span
+                                            className={styles.cardBtnTextClone}
+                                            aria-hidden="true"
+                                        >
+                                            View The Program
+                                        </span>
+                                    </span>
                                 </button>
                             </div>
                             </>,
@@ -241,6 +325,7 @@ export default function SportGrid({
                 videos={featuredSeries.videos}
                 onPlay={openVideo}
                 autoplay={!editorMode}
+                openOnCardClick={!editorMode}
                 renderItem={
                     editorMode
                         ? (video, idx, role) =>
@@ -252,10 +337,14 @@ export default function SportGrid({
             <div className={styles.separator} />
 
             <VideoPopup
-                isOpen={Boolean(activeVideo?.videoUrl.trim())}
+                isOpen={Boolean(
+                    activeVideo?.streamUid?.trim() || activeVideo?.videoUrl.trim(),
+                )}
                 title={activeVideo?.title ?? ""}
                 videoUrl={activeVideo?.videoUrl ?? ""}
+                streamUid={activeVideo?.streamUid}
                 onClose={closeVideo}
+                fullscreen
             />
         </div>
     );

@@ -93,6 +93,7 @@ function createItem(): FashionMediaItem {
     subtitle: "",
     mediaUrl: "",
     mediaKind: "image",
+    streamUid: "",
     aspect: "portrait",
   };
 }
@@ -105,6 +106,7 @@ function createReviewItem(): FashionMediaItem {
     meta: "Role or company",
     mediaUrl: "",
     mediaKind: "image",
+    streamUid: "",
   };
 }
 
@@ -119,6 +121,7 @@ function createBlock(type: FashionBlockType): FashionBlock {
     mediaUrl: "",
     mediaKind: "image",
     videoUrl: "",
+    streamUid: "",
     ctaLabel: "",
     ctaHref: "",
     theme: "light",
@@ -1235,6 +1238,15 @@ export default function AdminUploader() {
                   }
                 />
               </Field>
+              <Field label="Cloudflare Stream UID" hint="Ưu tiên UID này cho autoplay/popup. Media URL và Popup video URL vẫn giữ làm fallback.">
+                <input
+                  value={block.streamUid ?? ""}
+                  onChange={(event) =>
+                    updateBlock(idx, { streamUid: event.target.value })
+                  }
+                  placeholder="Ví dụ: 6b9e68b07dfee8cc2d116e4c51d6a957"
+                />
+              </Field>
             </>
           )}
 
@@ -1474,6 +1486,17 @@ export default function AdminUploader() {
                               videoUrl: event.target.value,
                             })
                           }
+                        />
+                      </Field>
+                      <Field label="Cloudflare Stream UID" hint="Ưu tiên UID này cho autoplay/popup. Media URL và Popup video URL vẫn giữ làm fallback.">
+                        <input
+                          value={item.streamUid ?? ""}
+                          onChange={(event) =>
+                            updateItem(idx, itemIndex, {
+                              streamUid: event.target.value,
+                            })
+                          }
+                          placeholder="Ví dụ: 6b9e68b07dfee8cc2d116e4c51d6a957"
                         />
                       </Field>
                     </>

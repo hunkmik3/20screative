@@ -91,6 +91,7 @@
     text-decoration: none;
     transition: opacity var(--transition-fast);
     margin: 0;
+    overflow-wrap: anywhere;
 }
 
 a.infoValue:hover {
@@ -195,7 +196,25 @@ a.infoValue:hover {
 }
 
 @media (max-width: 480px) {
+    .infoCol {
+        padding: 42px 18px 36px;
+        gap: 36px;
+    }
+
+    .formCol {
+        padding: 36px 18px 52px;
+    }
+
+    .heading {
+        font-size: clamp(1.75rem, 12vw, 2.35rem);
+    }
+
     .fieldRow {
         grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .submitBtn {
+        width: 100%;
     }
 }

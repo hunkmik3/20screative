@@ -34,6 +34,11 @@ const nextConfig: NextConfig = {
         hostname: "*.squarespace-cdn.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "*.cloudflarestream.com",
+        pathname: "/**",
+      },
       ...(r2RemotePattern ? [r2RemotePattern] : []),
     ],
   },

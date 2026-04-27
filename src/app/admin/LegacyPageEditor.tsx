@@ -77,6 +77,7 @@ function createVideoProject(): VideoProject {
     description: "",
     duration: "00:00",
     videoUrl: "",
+    streamUid: "",
   };
 }
 
@@ -87,6 +88,7 @@ function createSportProgram(): SportProgram {
     title: "#NewProgram",
     subtitle: "",
     videoUrl: "",
+    streamUid: "",
   };
 }
 
@@ -914,6 +916,13 @@ export default function LegacyPageEditor({
             />
           </Field>
         </div>
+        <Field label="Cloudflare Stream UID" hint="Ưu tiên dùng UID này để phát video. Video URL R2 vẫn giữ làm fallback.">
+          <input
+            value={video.streamUid ?? ""}
+            onChange={(event) => onChange({ streamUid: event.target.value })}
+            placeholder="Ví dụ: 6b9e68b07dfee8cc2d116e4c51d6a957"
+          />
+        </Field>
       </>
     );
   }
@@ -1350,6 +1359,23 @@ export default function LegacyPageEditor({
                   }
                 />
               </Field>
+              <Field
+                label="Cloudflare Stream UID"
+                hint="Ưu tiên UID này cho autoplay/popup. Video URL vẫn giữ làm fallback."
+              >
+                <input
+                  value={content.newestSeries.streamUid ?? ""}
+                  onChange={(event) =>
+                    updateCommercial({
+                      newestSeries: {
+                        ...content.newestSeries,
+                        streamUid: event.target.value,
+                      },
+                    })
+                  }
+                  placeholder="Ví dụ: 6b9e68b07dfee8cc2d116e4c51d6a957"
+                />
+              </Field>
             </>
           )}
           {content.kind === "commercial" && selectedKey === "featured" && (
@@ -1508,6 +1534,17 @@ export default function LegacyPageEditor({
                         videoUrl: event.target.value,
                       })
                     }
+                  />
+                </Field>
+                <Field label="Cloudflare Stream UID" hint="Ưu tiên dùng UID này để phát video. Video URL R2 vẫn giữ làm fallback.">
+                  <input
+                    value={content.programs[selectedIndex].streamUid ?? ""}
+                    onChange={(event) =>
+                      updateProgram(selectedIndex, {
+                        streamUid: event.target.value,
+                      })
+                    }
+                    placeholder="Ví dụ: 6b9e68b07dfee8cc2d116e4c51d6a957"
                   />
                 </Field>
               </>

@@ -3,10 +3,20 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
+  type WheelEvent as ReactWheelEvent,
 } from "react";
 import Image from "next/image";
+import AutoplayVideoPreview from "./AutoplayVideoPreview";
+import RevealText from "./RevealText";
+import {
+  getCloudflareStreamDownloadUrl,
+  getCloudflareStreamThumbnailUrl,
+  hasCloudflareStreamConfig,
+} from "@/lib/cloudflareStream";
+import { isVideoFileUrl, isYoutubeUrl } from "@/lib/videoEmbed";
 import type { VideoProject } from "./ProjectGrid";
 import styles from "./VideoLookbook.module.css";
 
@@ -18,6 +28,7 @@ interface Props {
   videos: VideoProject[];
   onPlay?: (video: VideoProject) => void;
   autoplay?: boolean;
+  openOnCardClick?: boolean;
   renderItem?: (
     video: VideoProject,
     index: number,
@@ -33,16 +44,34 @@ function modIndex(i: number, n: number) {
   return ((i % n) + n) % n;
 }
 
+function previewPreloadFor(role: SlotRole) {
+  return role === "center" || role === "left" || role === "right"
+    ? "auto"
+    : "metadata";
+}
+
+function previewDelayFor(role: SlotRole) {
+  if (role === "center") return 0;
+  if (role === "left" || role === "right") return 90;
+  return 180;
+}
+
 export default function VideoLookbook({
   title,
   description,
   videos,
   onPlay,
   autoplay = true,
+  openOnCardClick = false,
   renderItem,
 }: Props) {
   const N = videos.length;
   const [active, setActive] = useState(0);
+  const [canPlayPreviews, setCanPlayPreviews] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const wheelRemainderRef = useRef(0);
+  const lastWheelStepAtRef = useRef(0);
+  const wheelResetTimerRef = useRef<number | null>(null);
 
   // Auto-advance
   useEffect(() => {
@@ -53,6 +82,34 @@ export default function VideoLookbook({
     }, AUTO_INTERVAL_MS);
     return () => window.clearTimeout(timer);
   }, [active, autoplay, N]);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || typeof IntersectionObserver === "undefined") {
+      const frame = window.requestAnimationFrame(() => {
+        setCanPlayPreviews(true);
+      });
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setCanPlayPreviews(entry.isIntersecting);
+      },
+      { rootMargin: "520px 0px", threshold: 0 },
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (wheelResetTimerRef.current !== null) {
+        window.clearTimeout(wheelResetTimerRef.current);
+      }
+    };
+  }, []);
 
   const slots = useMemo<{ video: VideoProject; role: SlotRole }[]>(() => {
     if (N === 0) return [];
@@ -92,15 +149,63 @@ export default function VideoLookbook({
   const handlePrev = () => setActive((prev) => modIndex(prev - 1, N));
   const handleNext = () => setActive((prev) => modIndex(prev + 1, N));
 
+  const handleStageWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
+    if (N < 2) return;
+
+    const horizontalDelta =
+      Math.abs(event.deltaX) > Math.max(8, Math.abs(event.deltaY) * 1.15)
+        ? event.deltaX
+        : event.shiftKey && Math.abs(event.deltaY) > 8
+          ? event.deltaY
+          : 0;
+
+    if (!horizontalDelta) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (wheelResetTimerRef.current !== null) {
+      window.clearTimeout(wheelResetTimerRef.current);
+    }
+    wheelResetTimerRef.current = window.setTimeout(() => {
+      wheelRemainderRef.current = 0;
+      wheelResetTimerRef.current = null;
+    }, 180);
+
+    wheelRemainderRef.current += horizontalDelta;
+
+    const threshold = 78;
+    if (Math.abs(wheelRemainderRef.current) < threshold) return;
+
+    const now = window.performance.now();
+    if (now - lastWheelStepAtRef.current < 150) return;
+
+    const steps = wheelRemainderRef.current > 0 ? 1 : -1;
+    wheelRemainderRef.current -= steps * threshold;
+    lastWheelStepAtRef.current = now;
+    setActive((prev) => modIndex(prev + steps, N));
+  };
+
   return (
-    <section className={styles.section}>
+    <section ref={sectionRef} className={styles.section}>
       <header className={styles.header}>
-        <p className={styles.kicker}>Video lookbook</p>
-        <h2 className={styles.title}>{title}</h2>
+        <RevealText
+          as="p"
+          className={styles.kicker}
+          text="Video lookbook"
+          staggerMs={36}
+        />
+        <RevealText
+          as="h2"
+          className={styles.title}
+          text={title}
+          delayMs={120}
+          staggerMs={58}
+        />
         {description && <p className={styles.description}>{description}</p>}
       </header>
 
-      <div className={styles.stage}>
+      <div className={styles.stage} onWheel={handleStageWheel}>
         {N > 1 && (
           <button
             type="button"
@@ -116,7 +221,22 @@ export default function VideoLookbook({
           {slots.map(({ video, role }) => {
             const isCenter = role === "center";
             const hasVideoUrl = hasAsset(video.videoUrl);
-            const hasThumbnail = hasAsset(video.thumbnail);
+            const canUseNativePreview =
+              hasVideoUrl && !isYoutubeUrl(video.videoUrl);
+            const hasStreamUid =
+              hasAsset(video.streamUid) && hasCloudflareStreamConfig();
+            const streamVideoUrl = getCloudflareStreamDownloadUrl(video.streamUid);
+            const isPlayable = hasStreamUid || hasVideoUrl;
+            const hasThumbnail =
+              hasAsset(video.thumbnail) && !isVideoFileUrl(video.thumbnail);
+            const streamThumbnail = getCloudflareStreamThumbnailUrl(video.streamUid);
+            const posterSrc = hasThumbnail
+              ? video.thumbnail
+              : streamThumbnail ?? "";
+            const hasPoster = hasAsset(posterSrc);
+            const shouldPlayInline =
+              canPlayPreviews &&
+              isPlayable;
             const positionClass =
               role === "farLeft"
                 ? styles.cardFarLeft
@@ -128,8 +248,10 @@ export default function VideoLookbook({
                       ? styles.cardRight
                       : styles.cardCenter;
             const handleClick = () => {
-              if (isCenter) {
-                if (hasVideoUrl) onPlay?.(video);
+              if (openOnCardClick && isPlayable) {
+                onPlay?.(video);
+              } else if (isCenter) {
+                if (isPlayable) onPlay?.(video);
               } else if (role === "left") {
                 setActive((prev) => modIndex(prev - 1, N));
               } else if (role === "farLeft") {
@@ -141,13 +263,21 @@ export default function VideoLookbook({
               }
             };
             return (
-              <button
-                type="button"
-                key={`${video.id}-${role}`}
+              <div
+                key={video.id}
+                role="button"
+                tabIndex={0}
                 className={`${styles.card} ${positionClass}`}
                 onClick={handleClick}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" && event.key !== " ") return;
+                  event.preventDefault();
+                  handleClick();
+                }}
                 aria-label={
-                  isCenter ? `Phát ${video.title}` : `Chuyển ${video.title}`
+                  openOnCardClick || isCenter
+                    ? `Phát ${video.title}`
+                    : `Chuyển ${video.title}`
                 }
               >
                 {renderItem ? (
@@ -155,20 +285,28 @@ export default function VideoLookbook({
                 ) : (
                   <>
                     <div className={styles.media}>
-                      {hasVideoUrl ? (
-                        <video
-                          className={styles.video}
-                          src={video.videoUrl}
-                          poster={hasThumbnail ? video.thumbnail : undefined}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          preload="metadata"
+                      {shouldPlayInline && hasStreamUid && streamVideoUrl ? (
+                        <AutoplayVideoPreview
+                          src={streamVideoUrl}
+                          fallbackSrc={
+                            canUseNativePreview ? video.videoUrl : undefined
+                          }
+                          className={`${styles.video} ${styles.previewFrame}`}
+                          preload={previewPreloadFor(role)}
+                          startDelayMs={previewDelayFor(role)}
+                          posterUrl={hasPoster ? posterSrc : undefined}
                         />
-                      ) : hasThumbnail ? (
+                      ) : shouldPlayInline && canUseNativePreview ? (
+                        <AutoplayVideoPreview
+                          src={video.videoUrl}
+                          posterUrl={hasPoster ? posterSrc : undefined}
+                          className={`${styles.video} ${styles.previewFrame}`}
+                          preload={previewPreloadFor(role)}
+                          startDelayMs={previewDelayFor(role)}
+                        />
+                      ) : hasPoster ? (
                         <Image
-                          src={video.thumbnail}
+                          src={posterSrc}
                           alt={video.title}
                           width={720}
                           height={1280}
@@ -193,7 +331,7 @@ export default function VideoLookbook({
                     <h3 className={styles.cardTitle}>{video.title}</h3>
                   </>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>
