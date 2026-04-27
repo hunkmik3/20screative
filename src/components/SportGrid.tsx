@@ -295,13 +295,13 @@ export default function SportGrid({
                                 >
                                     <span className={styles.cardBtnTextWrap}>
                                         <span className={styles.cardBtnText}>
-                                            View The Program
+                                            View Video
                                         </span>
                                         <span
                                             className={styles.cardBtnTextClone}
                                             aria-hidden="true"
                                         >
-                                            View The Program
+                                            View Video
                                         </span>
                                     </span>
                                 </button>
