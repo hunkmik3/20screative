@@ -47,6 +47,23 @@
     cursor: default;
 }
 
+.cardButton {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    appearance: none;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: zoom-in;
+}
+
+.cardButton:focus-visible {
+    outline: 2px solid #111111;
+    outline-offset: 3px;
+    z-index: 4;
+}
+
 .cardEditor {
     cursor: pointer;
 }
@@ -202,6 +219,118 @@
     z-index: 2;
 }
 
+.popup {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    padding: clamp(18px, 4vw, 52px);
+    background: rgba(8, 8, 8, 0.92);
+    backdrop-filter: blur(10px);
+    cursor: zoom-out;
+}
+
+.popupFigure {
+    position: relative;
+    display: grid;
+    place-items: center;
+    gap: 16px;
+    width: min(92vw, 1500px);
+    max-height: 92vh;
+    margin: 0;
+    cursor: default;
+}
+
+.popupImage {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: min(78vh, 920px);
+    object-fit: contain;
+    display: block;
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.38);
+}
+
+.popupCaption {
+    display: grid;
+    gap: 4px;
+    width: min(100%, 920px);
+    text-align: center;
+    color: #ffffff;
+}
+
+.popupCaption span {
+    font-family: var(--font-body);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.popupCaption strong {
+    font-family: var(--font-serif), Georgia, serif;
+    font-size: clamp(1.05rem, 2vw, 1.65rem);
+    font-weight: 600;
+}
+
+.popupCaption p {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.popupClose,
+.popupArrow {
+    position: fixed;
+    z-index: 2;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    background: rgba(0, 0, 0, 0.38);
+    color: #ffffff;
+    cursor: pointer;
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.popupClose:hover,
+.popupArrow:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.76);
+}
+
+.popupClose {
+    top: 20px;
+    right: 20px;
+    width: 42px;
+    height: 42px;
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.popupArrow {
+    top: 50%;
+    width: 48px;
+    height: 48px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.popupArrowPrev {
+    left: 24px;
+}
+
+.popupArrowNext {
+    right: 24px;
+}
+
 @media (max-width: 1080px) {
     .wrapper {
         max-width: 92vw;
@@ -267,5 +396,41 @@
 
     .cardDesc {
         display: none;
+    }
+
+    .popup {
+        padding: 16px;
+    }
+
+    .popupFigure {
+        width: 100%;
+        gap: 12px;
+    }
+
+    .popupImage {
+        max-height: 74vh;
+    }
+
+    .popupClose {
+        top: 12px;
+        right: 12px;
+        width: 38px;
+        height: 38px;
+    }
+
+    .popupArrow {
+        top: auto;
+        bottom: 18px;
+        width: 42px;
+        height: 42px;
+        transform: none;
+    }
+
+    .popupArrowPrev {
+        left: 18px;
+    }
+
+    .popupArrowNext {
+        right: 18px;
     }
 }

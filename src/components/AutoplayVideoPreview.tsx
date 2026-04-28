@@ -25,9 +25,33 @@ export default function AutoplayVideoPreview({
   const cleanPosterUrl = posterUrl?.trim();
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const [readySrc, setReadySrc] = useState<string | null>(null);
-  const activeSrc =
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const selectedSrc =
     failedSrc === cleanSrc && cleanFallbackSrc ? cleanFallbackSrc : cleanSrc;
-  const isReady = readySrc === activeSrc;
+  const activeSrc = shouldLoad ? selectedSrc : "";
+  const isReady = Boolean(activeSrc && readySrc === activeSrc);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !selectedSrc) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      const frame = window.requestAnimationFrame(() => setShouldLoad(true));
+      return () => window.cancelAnimationFrame(frame);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting || entry.intersectionRatio > 0) {
+          setShouldLoad(true);
+        }
+      },
+      { rootMargin: "520px 0px", threshold: 0 },
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [selectedSrc]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -46,7 +70,9 @@ export default function AutoplayVideoPreview({
       if (playTimer !== null) window.clearTimeout(playTimer);
       playTimer = window.setTimeout(() => {
         if (!active || document.hidden) return;
-        void video.play().catch(() => {});
+        void video.play().catch(() => {
+          setReadySrc(null);
+        });
       }, startDelayMs);
     };
 
@@ -101,24 +127,24 @@ export default function AutoplayVideoPreview({
     };
   }, [activeSrc, startDelayMs]);
 
-  if (!activeSrc) return null;
+  if (!selectedSrc) return null;
 
   return (
     <>
       <video
         ref={videoRef}
         className={className}
-        src={activeSrc}
+        src={activeSrc || undefined}
         poster={cleanPosterUrl || undefined}
         autoPlay
         muted
         loop
         playsInline
-        preload={preload}
+        preload={activeSrc ? preload : "none"}
         disablePictureInPicture
         aria-hidden="true"
         onError={() => {
-          if (cleanFallbackSrc && activeSrc !== cleanFallbackSrc) {
+          if (cleanFallbackSrc && activeSrc && activeSrc !== cleanFallbackSrc) {
             setFailedSrc(activeSrc);
           }
         }}

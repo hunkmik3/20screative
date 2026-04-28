@@ -1,13 +1,51 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import styles from "./page.module.css";
 
 export default function HomeHero({ videoSrc }: { videoSrc?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (!videoSrc) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    let active = true;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+
+    const play = () => {
+      if (!active || document.hidden) return;
+      void video.play().catch(() => {});
+    };
+    const handleVisibility = () => {
+      if (document.hidden) video.pause();
+      else play();
+    };
+
+    video.addEventListener("loadeddata", play);
+    video.addEventListener("canplay", play);
+    document.addEventListener("visibilitychange", handleVisibility);
+    play();
+
+    return () => {
+      active = false;
+      video.removeEventListener("loadeddata", play);
+      video.removeEventListener("canplay", play);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [videoSrc]);
+
   return (
     <div className={styles.hero}>
       <div className={styles.videoContainer}>
         {videoSrc ? (
           <video
+            ref={videoRef}
             className={styles.heroVideo}
             src={videoSrc}
             muted

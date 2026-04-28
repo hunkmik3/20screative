@@ -69,6 +69,7 @@ export default function PhotoGrid({
     onUpdateMediaPosition,
 }: PhotoGridProps) {
     const visibleProjects = projects.slice(0, 20);
+    const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
     const dragRef = useRef<{
         target: string;
         startX: number;
@@ -82,6 +83,23 @@ export default function PhotoGrid({
     const showDescription = (index: number) => {
         const pos = index % 6;
         return pos === 0 || pos === 2 || pos === 4;
+    };
+
+    const activePhoto =
+        activePhotoIndex !== null ? visibleProjects[activePhotoIndex] : null;
+    const canNavigatePopup = visibleProjects.length > 1;
+    const closePopup = () => setActivePhotoIndex(null);
+    const showPrevPhoto = () => {
+        setActivePhotoIndex((current) => {
+            if (current === null) return current;
+            return (current - 1 + visibleProjects.length) % visibleProjects.length;
+        });
+    };
+    const showNextPhoto = () => {
+        setActivePhotoIndex((current) => {
+            if (current === null) return current;
+            return (current + 1) % visibleProjects.length;
+        });
     };
 
     const commitMediaPosition = (target: string, next: PhotoMediaPosition) => {
@@ -118,6 +136,30 @@ export default function PhotoGrid({
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (!activePhoto) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                closePopup();
+            } else if (event.key === "ArrowLeft") {
+                showPrevPhoto();
+            } else if (event.key === "ArrowRight") {
+                showNextPhoto();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activePhoto]);
 
     const startMediaDrag = (
         event: ReactPointerEvent<HTMLDivElement>,
@@ -238,13 +280,19 @@ export default function PhotoGrid({
         }
 
         return (
-            <article
+            <button
+                type="button"
                 key={project.id}
-                className={cardClass}
+                className={`${cardClass} ${styles.cardButton}`}
                 style={resolveLayoutStyle(project.layout)}
+                onClick={() => {
+                    if (!hasAsset(project.thumbnail)) return;
+                    setActivePhotoIndex(index);
+                }}
+                aria-label={`Open ${project.title}`}
             >
                 {children}
-            </article>
+            </button>
         );
     };
 
@@ -260,6 +308,75 @@ export default function PhotoGrid({
                     renderProjectCard(project, index),
                 )}
             </div>
+
+            {activePhoto && hasAsset(activePhoto.thumbnail) && (
+                <div
+                    className={styles.popup}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={activePhoto.title}
+                    onClick={closePopup}
+                >
+                    <button
+                        type="button"
+                        className={styles.popupClose}
+                        onClick={closePopup}
+                        aria-label="Close image"
+                    >
+                        ×
+                    </button>
+                    {canNavigatePopup && (
+                        <button
+                            type="button"
+                            className={`${styles.popupArrow} ${styles.popupArrowPrev}`}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                showPrevPhoto();
+                            }}
+                            aria-label="Previous image"
+                        >
+                            ‹
+                        </button>
+                    )}
+                    <figure
+                        className={styles.popupFigure}
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <Image
+                            src={activePhoto.thumbnail}
+                            alt={activePhoto.title}
+                            width={1800}
+                            height={1200}
+                            className={styles.popupImage}
+                            priority
+                        />
+                        {(activePhoto.title || activePhoto.description) && (
+                            <figcaption className={styles.popupCaption}>
+                                {activePhoto.duration && (
+                                    <span>{activePhoto.duration}</span>
+                                )}
+                                {activePhoto.title && <strong>{activePhoto.title}</strong>}
+                                {activePhoto.description && (
+                                    <p>{activePhoto.description}</p>
+                                )}
+                            </figcaption>
+                        )}
+                    </figure>
+                    {canNavigatePopup && (
+                        <button
+                            type="button"
+                            className={`${styles.popupArrow} ${styles.popupArrowNext}`}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                showNextPhoto();
+                            }}
+                            aria-label="Next image"
+                        >
+                            ›
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

@@ -335,7 +335,8 @@ export default function VideoLookbook({
             const hasPoster = hasAsset(posterSrc);
             const shouldPlayInline =
               canPlayPreviews &&
-              isPlayable;
+              isPlayable &&
+              (role === "center" || role === "left" || role === "right");
             const positionClass =
               role === "farLeft"
                 ? styles.cardFarLeft

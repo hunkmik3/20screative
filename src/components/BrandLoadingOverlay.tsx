@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Image from "next/image";
 import styles from "./BrandLoadingOverlay.module.css";
 
@@ -17,6 +18,14 @@ export default function BrandLoadingOverlay({
   onExited,
 }: BrandLoadingOverlayProps) {
   const safeProgress = Math.max(0, Math.min(1, progress));
+
+  useEffect(() => {
+    if (!exiting) return;
+    const timer = window.setTimeout(() => {
+      onExited?.();
+    }, 720);
+    return () => window.clearTimeout(timer);
+  }, [exiting, onExited]);
 
   return (
     <div
