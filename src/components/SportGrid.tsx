@@ -205,6 +205,7 @@ export default function SportGrid({
                 title={openingSeries.title}
                 description={openingSeries.description}
                 videos={openingSeries.videos}
+                kicker="Short Video"
                 onPlay={openVideo}
                 autoplay={!editorMode}
                 openOnCardClick={!editorMode}
@@ -323,6 +324,7 @@ export default function SportGrid({
                 title={featuredSeries.title}
                 description={featuredSeries.description}
                 videos={featuredSeries.videos}
+                kicker="Short Video"
                 onPlay={openVideo}
                 autoplay={!editorMode}
                 openOnCardClick={!editorMode}

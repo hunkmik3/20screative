@@ -33,6 +33,7 @@ import {
   getDefaultPageContent,
   type EditablePageSlug,
 } from "@/data/pageContent";
+import AboutPageEditor from "./AboutPageEditor";
 import LegacyPageEditor from "./LegacyPageEditor";
 import styles from "./AdminUploader.module.css";
 
@@ -318,7 +319,7 @@ export default function AdminUploader() {
     editablePages.find((page) => page.slug === activePage) ?? editablePages[0];
 
   useEffect(() => {
-    if (isLegacyPageSlug(activePage)) return;
+    if (isLegacyPageSlug(activePage) || activePage === "about") return;
 
     let ignore = false;
     async function loadPageContent() {
@@ -1533,6 +1534,17 @@ export default function AdminUploader() {
   if (isLegacyPageSlug(activePage)) {
     return (
       <LegacyPageEditor
+        key={activePage}
+        activePage={activePage}
+        onActivePageChange={setActivePage}
+        onLogout={logout}
+      />
+    );
+  }
+
+  if (activePage === "about") {
+    return (
+      <AboutPageEditor
         key={activePage}
         activePage={activePage}
         onActivePageChange={setActivePage}

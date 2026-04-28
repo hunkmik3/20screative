@@ -8,7 +8,10 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
-import PhotoGrid, { type PhotoProject } from "@/components/PhotoGrid";
+import PhotoGrid, {
+  type PhotoMediaPosition,
+  type PhotoProject,
+} from "@/components/PhotoGrid";
 import ProjectGrid, {
   type FeaturedSeries,
   type VideoProject,
@@ -67,6 +70,25 @@ function uid(prefix: string) {
 
 function cloneContent<T>(content: T): T {
   return JSON.parse(JSON.stringify(content)) as T;
+}
+
+const DEFAULT_PHOTO_MEDIA_POSITION: PhotoMediaPosition = { x: 50, y: 50 };
+
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function normalizePhotoMediaPosition(
+  value?: Partial<PhotoMediaPosition>,
+): PhotoMediaPosition {
+  return {
+    x: Number.isFinite(value?.x)
+      ? clampPercent(Number(value?.x))
+      : DEFAULT_PHOTO_MEDIA_POSITION.x,
+    y: Number.isFinite(value?.y)
+      ? clampPercent(Number(value?.y))
+      : DEFAULT_PHOTO_MEDIA_POSITION.y,
+  };
 }
 
 function createVideoProject(): VideoProject {
@@ -772,6 +794,20 @@ export default function LegacyPageEditor({
     }
   }
 
+  function updatePhotoMediaPositionByTarget(
+    target: string,
+    next: PhotoMediaPosition,
+  ) {
+    const [type, rawIndex] = target.split(":");
+    const index = Number(rawIndex);
+
+    if (type !== "project" || !Number.isFinite(index)) return;
+
+    updateProject(index, {
+      mediaPosition: normalizePhotoMediaPosition(next),
+    });
+  }
+
   function resetSelectedLayout() {
     const [type, rawIndex] = selectedKey.split(":");
     const index = Number(rawIndex);
@@ -917,6 +953,48 @@ export default function LegacyPageEditor({
           />
         </Field>
       </>
+    );
+  }
+
+  function renderPhotoMediaPositionFields(
+    project: PhotoProject,
+    index: number,
+  ) {
+    const mediaPosition = normalizePhotoMediaPosition(project.mediaPosition);
+    const updateAxis = (axis: keyof PhotoMediaPosition, value: number) => {
+      updateProject(index, {
+        mediaPosition: normalizePhotoMediaPosition({
+          ...mediaPosition,
+          [axis]: Number.isFinite(value)
+            ? value
+            : DEFAULT_PHOTO_MEDIA_POSITION[axis],
+        }),
+      });
+    };
+
+    return (
+      <div className={styles.twoColumns}>
+        <Field label="Image X (%)">
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            value={mediaPosition.x}
+            onChange={(event) => updateAxis("x", event.target.valueAsNumber)}
+          />
+        </Field>
+        <Field label="Image Y (%)">
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            value={mediaPosition.y}
+            onChange={(event) => updateAxis("y", event.target.valueAsNumber)}
+          />
+        </Field>
+      </div>
     );
   }
 
@@ -1590,6 +1668,10 @@ export default function LegacyPageEditor({
                   content.projects[selectedIndex].thumbnail,
                   (thumbnail) => updateProject(selectedIndex, { thumbnail }),
                 )}
+                {renderPhotoMediaPositionFields(
+                  content.projects[selectedIndex],
+                  selectedIndex,
+                )}
                 <Field label="Meta label">
                   <input
                     value={content.projects[selectedIndex].duration}
@@ -1682,6 +1764,7 @@ export default function LegacyPageEditor({
         selectedTarget={selectedKey}
         onSelectTarget={(target) => setSelectedKey(target as SelectionKey)}
         onUpdateLayout={updateLayoutByTarget}
+        onUpdateMediaPosition={updatePhotoMediaPositionByTarget}
       />
     );
   }

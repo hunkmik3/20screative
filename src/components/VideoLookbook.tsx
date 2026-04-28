@@ -27,6 +27,7 @@ interface Props {
   title: string;
   description: string;
   videos: VideoProject[];
+  kicker?: string;
   onPlay?: (video: VideoProject) => void;
   autoplay?: boolean;
   openOnCardClick?: boolean;
@@ -61,6 +62,7 @@ export default function VideoLookbook({
   title,
   description,
   videos,
+  kicker = "Video lookbook",
   onPlay,
   autoplay = true,
   openOnCardClick = false,
@@ -275,7 +277,7 @@ export default function VideoLookbook({
         <RevealText
           as="p"
           className={styles.kicker}
-          text="Video lookbook"
+          text={kicker}
           staggerMs={36}
         />
         <RevealText

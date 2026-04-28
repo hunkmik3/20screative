@@ -921,6 +921,7 @@ export default function ProjectGrid({
                 title={featuredSeries.title}
                 description={featuredSeries.description}
                 videos={featuredSeries.videos}
+                kicker={isCommercialLayout ? "Short Video" : undefined}
                 onPlay={openVideo}
                 autoplay={!editorMode}
                 renderItem={

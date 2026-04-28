@@ -3,7 +3,7 @@ import type {
   NewestSeries,
   VideoProject,
 } from "@/components/ProjectGrid";
-import type { PhotoProject } from "@/components/PhotoGrid";
+import type { PhotoMediaPosition, PhotoProject } from "@/components/PhotoGrid";
 import type { SportProgram } from "@/components/SportGrid";
 import {
   commercialFeaturedSeries,
@@ -101,6 +101,29 @@ function hasString(value: Record<string, unknown>, key: string) {
   return typeof value[key] === "string";
 }
 
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function isPhotoMediaPosition(value: unknown): value is PhotoMediaPosition {
+  return (
+    isRecord(value) &&
+    typeof value.x === "number" &&
+    Number.isFinite(value.x) &&
+    typeof value.y === "number" &&
+    Number.isFinite(value.y)
+  );
+}
+
+function normalizePhotoMediaPosition(value: unknown): PhotoMediaPosition | undefined {
+  if (!isPhotoMediaPosition(value)) return undefined;
+
+  return {
+    x: Math.round(clampPercent(value.x) * 10) / 10,
+    y: Math.round(clampPercent(value.y) * 10) / 10,
+  };
+}
+
 function isVideoProject(value: unknown): value is VideoProject {
   return (
     isRecord(value) &&
@@ -152,7 +175,9 @@ function isPhotoProject(value: unknown): value is PhotoProject {
     hasString(value, "thumbnail") &&
     hasString(value, "title") &&
     hasString(value, "description") &&
-    hasString(value, "duration")
+    hasString(value, "duration") &&
+    (value.mediaPosition === undefined ||
+      isPhotoMediaPosition(value.mediaPosition))
   );
 }
 
@@ -296,7 +321,13 @@ function normalizePhotoPageContent(value: unknown): LegacyPhotoPageContent | nul
 
   const defaultProjects = getDefaultLegacyPageContent("photo").projects;
   const currentProjects = value.projects as PhotoProject[];
-  const projects = [...currentProjects.slice(0, 20)];
+  const projects = currentProjects.slice(0, 20).map((project) => {
+    const mediaPosition = normalizePhotoMediaPosition(project.mediaPosition);
+    return {
+      ...clone(project),
+      ...(mediaPosition ? { mediaPosition } : {}),
+    };
+  });
 
   while (projects.length < 20) {
     const fallback = defaultProjects[projects.length];
