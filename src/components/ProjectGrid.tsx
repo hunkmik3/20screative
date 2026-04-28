@@ -7,6 +7,8 @@ import {
     useState,
     type CSSProperties,
     type ReactNode,
+    type TouchEvent as ReactTouchEvent,
+    type WheelEvent as ReactWheelEvent,
 } from "react";
 import Image from "next/image";
 import AutoplayVideoPreview from "@/components/AutoplayVideoPreview";
@@ -66,6 +68,7 @@ interface ProjectGridProps {
 }
 
 const hasAsset = (value?: string | null) => Boolean(value?.trim());
+const COMMERCIAL_BOTTOM_AUTO_INTERVAL_MS = 4500;
 
 export default function ProjectGrid({
     categoryTitle,
@@ -89,7 +92,25 @@ export default function ProjectGrid({
     const [commercialBottomViewportWidth, setCommercialBottomViewportWidth] =
         useState(0);
     const [commercialTopCardWidth, setCommercialTopCardWidth] = useState(0);
+    const [commercialBottomDragOffsetPx, setCommercialBottomDragOffsetPx] =
+        useState(0);
+    const [commercialBottomIsDragging, setCommercialBottomIsDragging] =
+        useState(false);
+    const [commercialBottomAutoplayStopped, setCommercialBottomAutoplayStopped] =
+        useState(false);
+    const [commercialBottomSuppressClickUntil, setCommercialBottomSuppressClickUntil] =
+        useState(0);
     const commercialBottomViewportRef = useRef<HTMLDivElement>(null);
+    const commercialBottomWheelRemainderRef = useRef(0);
+    const commercialBottomLastWheelStepAtRef = useRef(0);
+    const commercialBottomLastSwipeStepAtRef = useRef(0);
+    const commercialBottomWheelResetTimerRef = useRef<number | null>(null);
+    const commercialBottomTouchStartXRef = useRef(0);
+    const commercialBottomTouchStartYRef = useRef(0);
+    const commercialBottomTouchDeltaXRef = useRef(0);
+    const commercialBottomTouchGestureRef = useRef<
+        "none" | "horizontal" | "vertical"
+    >("none");
 
     const openVideo = useCallback((video: VideoProject) => {
         const canUseStream =
@@ -129,7 +150,9 @@ export default function ProjectGrid({
                   commercialBottomCarouselCount
                 : Math.min(commercialBottomDisplayIndex, commercialBottomCarouselCount - 1)
             : 0;
-    const commercialBottomSlideGapPx = 20;
+    const isCommercialBottomMobileViewport =
+        commercialBottomViewportWidth > 0 && commercialBottomViewportWidth <= 600;
+    const commercialBottomSlideGapPx = isCommercialBottomMobileViewport ? 14 : 20;
     const commercialBottomScale = 1.69;
     const desiredSideVisibleWidthPx =
         commercialTopCardWidth > 0
@@ -147,14 +170,20 @@ export default function ProjectGrid({
             : 0;
     const commercialBottomSlideWidthPx =
         commercialBottomViewportWidth > 0
-            ? Math.max(
-                  280,
-                  Math.min(
-                      commercialBottomViewportWidth * 0.98,
-                      (commercialBottomViewportWidth - commercialBottomSideInsetPx * 2) *
-                          commercialBottomScale,
-                  ),
-              )
+            ? isCommercialBottomMobileViewport
+                ? Math.max(
+                      260,
+                      Math.min(commercialBottomViewportWidth * 0.84, 380),
+                  )
+                : Math.max(
+                      280,
+                      Math.min(
+                          commercialBottomViewportWidth * 0.98,
+                          (commercialBottomViewportWidth -
+                              commercialBottomSideInsetPx * 2) *
+                              commercialBottomScale,
+                      ),
+                  )
             : 0;
     const commercialBottomBaseOffsetPx =
         commercialBottomViewportWidth > 0
@@ -166,6 +195,7 @@ export default function ProjectGrid({
             : 0;
     const commercialBottomViewportStyle: CSSProperties = {
         ["--latest-bottom-slide-width" as string]: `${commercialBottomSlideWidthPx}px`,
+        ["--latest-bottom-slide-gap" as string]: `${commercialBottomSlideGapPx}px`,
     };
 
     useEffect(() => {
@@ -184,6 +214,165 @@ export default function ProjectGrid({
         window.addEventListener("resize", updateViewportWidth);
         return () => window.removeEventListener("resize", updateViewportWidth);
     }, [isCommercialLayout]);
+
+    const stepCommercialBottom = useCallback(
+        (direction: -1 | 1, stopAutoplay = false) => {
+            if (commercialBottomCarouselCount < 2) return;
+            if (stopAutoplay) {
+                setCommercialBottomAutoplayStopped(true);
+            }
+            setCommercialBottomDisplayIndex((current) => current + direction);
+        },
+        [commercialBottomCarouselCount],
+    );
+
+    useEffect(() => {
+        if (!isCommercialLayout) return;
+        if (editorMode) return;
+        if (commercialBottomCarouselCount < 2) return;
+        if (commercialBottomAutoplayStopped) return;
+        if (commercialBottomIsDragging) return;
+
+        const timer = window.setTimeout(() => {
+            stepCommercialBottom(1, false);
+        }, COMMERCIAL_BOTTOM_AUTO_INTERVAL_MS);
+
+        return () => window.clearTimeout(timer);
+    }, [
+        commercialBottomCarouselCount,
+        commercialBottomAutoplayStopped,
+        commercialBottomDisplayIndex,
+        commercialBottomIsDragging,
+        editorMode,
+        isCommercialLayout,
+        stepCommercialBottom,
+    ]);
+
+    useEffect(() => {
+        return () => {
+            if (commercialBottomWheelResetTimerRef.current !== null) {
+                window.clearTimeout(commercialBottomWheelResetTimerRef.current);
+            }
+        };
+    }, []);
+
+    const handleCommercialBottomWheel = (
+        event: ReactWheelEvent<HTMLDivElement>,
+    ) => {
+        if (!isCommercialLayout || commercialBottomCarouselCount < 2) return;
+
+        const horizontalDelta =
+            Math.abs(event.deltaX) > Math.max(8, Math.abs(event.deltaY) * 1.15)
+                ? event.deltaX
+                : event.shiftKey && Math.abs(event.deltaY) > 8
+                  ? event.deltaY
+                  : 0;
+        if (!horizontalDelta) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (commercialBottomWheelResetTimerRef.current !== null) {
+            window.clearTimeout(commercialBottomWheelResetTimerRef.current);
+        }
+        commercialBottomWheelResetTimerRef.current = window.setTimeout(() => {
+            commercialBottomWheelRemainderRef.current = 0;
+            commercialBottomWheelResetTimerRef.current = null;
+        }, 180);
+
+        commercialBottomWheelRemainderRef.current += horizontalDelta;
+        const threshold = 120;
+        if (Math.abs(commercialBottomWheelRemainderRef.current) < threshold) return;
+
+        const now = window.performance.now();
+        if (now - commercialBottomLastWheelStepAtRef.current < 240) return;
+        if (now - commercialBottomLastSwipeStepAtRef.current < 380) return;
+
+        const direction = commercialBottomWheelRemainderRef.current > 0 ? 1 : -1;
+        commercialBottomWheelRemainderRef.current -= direction * threshold;
+        commercialBottomLastWheelStepAtRef.current = now;
+        commercialBottomLastSwipeStepAtRef.current = now;
+        stepCommercialBottom(direction > 0 ? 1 : -1, true);
+    };
+
+    const handleCommercialBottomTouchStart = (
+        event: ReactTouchEvent<HTMLDivElement>,
+    ) => {
+        if (!isCommercialLayout || commercialBottomCarouselCount < 2) return;
+        const touch = event.touches[0];
+        if (!touch) return;
+        commercialBottomTouchStartXRef.current = touch.clientX;
+        commercialBottomTouchStartYRef.current = touch.clientY;
+        commercialBottomTouchDeltaXRef.current = 0;
+        commercialBottomTouchGestureRef.current = "none";
+        setCommercialBottomDragOffsetPx(0);
+        setCommercialBottomIsDragging(false);
+    };
+
+    const handleCommercialBottomTouchMove = (
+        event: ReactTouchEvent<HTMLDivElement>,
+    ) => {
+        if (!isCommercialLayout || commercialBottomCarouselCount < 2) return;
+        const touch = event.touches[0];
+        if (!touch) return;
+
+        const deltaX = touch.clientX - commercialBottomTouchStartXRef.current;
+        const deltaY = touch.clientY - commercialBottomTouchStartYRef.current;
+        commercialBottomTouchDeltaXRef.current = deltaX;
+
+        if (commercialBottomTouchGestureRef.current === "none") {
+            if (Math.abs(deltaX) > Math.abs(deltaY) + 8) {
+                commercialBottomTouchGestureRef.current = "horizontal";
+            } else if (Math.abs(deltaY) > Math.abs(deltaX) + 8) {
+                commercialBottomTouchGestureRef.current = "vertical";
+            }
+        }
+
+        if (commercialBottomTouchGestureRef.current === "horizontal") {
+            const viewportWidth =
+                commercialBottomViewportRef.current?.clientWidth ??
+                window.innerWidth ??
+                0;
+            const maxDrag = viewportWidth * 0.38;
+            const nextOffset = Math.max(-maxDrag, Math.min(maxDrag, deltaX));
+            setCommercialBottomIsDragging(true);
+            setCommercialBottomDragOffsetPx(nextOffset);
+            event.preventDefault();
+        }
+    };
+
+    const handleCommercialBottomTouchEnd = () => {
+        if (!isCommercialLayout || commercialBottomCarouselCount < 2) return;
+        setCommercialBottomIsDragging(false);
+        if (commercialBottomTouchGestureRef.current !== "horizontal") return;
+
+        const viewportWidth =
+            commercialBottomViewportRef.current?.clientWidth ??
+            window.innerWidth ??
+            0;
+        const threshold = Math.max(58, viewportWidth * 0.17);
+        const deltaX = commercialBottomTouchDeltaXRef.current;
+        if (Math.abs(deltaX) < threshold) {
+            setCommercialBottomDragOffsetPx(0);
+            return;
+        }
+
+        const now = window.performance.now();
+        if (now - commercialBottomLastSwipeStepAtRef.current < 380) {
+            setCommercialBottomDragOffsetPx(0);
+            return;
+        }
+
+        commercialBottomLastSwipeStepAtRef.current = now;
+        setCommercialBottomAutoplayStopped(true);
+        setCommercialBottomSuppressClickUntil(now + 320);
+        setCommercialBottomDragOffsetPx(0);
+        if (deltaX > 0) {
+            stepCommercialBottom(-1, true);
+            return;
+        }
+        stepCommercialBottom(1, true);
+    };
 
     const handleCommercialBottomTrackTransitionEnd = () => {
         if (!hasCommercialBottomLoop) return;
@@ -435,6 +624,11 @@ export default function ProjectGrid({
                                         ref={commercialBottomViewportRef}
                                         className={styles.latestBottomViewport}
                                         style={commercialBottomViewportStyle}
+                                        onWheel={handleCommercialBottomWheel}
+                                        onTouchStart={handleCommercialBottomTouchStart}
+                                        onTouchMove={handleCommercialBottomTouchMove}
+                                        onTouchEnd={handleCommercialBottomTouchEnd}
+                                        onTouchCancel={handleCommercialBottomTouchEnd}
                                     >
                                         <div
                                             className={styles.latestBottomTrack}
@@ -442,11 +636,14 @@ export default function ProjectGrid({
                                                 transform: `translateX(${
                                                     commercialBottomBaseOffsetPx -
                                                     effectiveCommercialBottomDisplayIndex *
-                                                        commercialBottomStepPx
+                                                        commercialBottomStepPx +
+                                                    commercialBottomDragOffsetPx
                                                 }px)`,
-                                                transition: commercialBottomTrackAnimate
-                                                    ? undefined
-                                                    : "none",
+                                                transition:
+                                                    commercialBottomIsDragging ||
+                                                    !commercialBottomTrackAnimate
+                                                        ? "none"
+                                                        : undefined,
                                             }}
                                             onTransitionEnd={handleCommercialBottomTrackTransitionEnd}
                                         >
@@ -470,7 +667,15 @@ export default function ProjectGrid({
                                                     }`,
                                                     layout: video.layout,
                                                     ariaLabel: `Edit ${video.title}`,
-                                                    onActivate: () => openVideo(video),
+                                                    onActivate: () => {
+                                                        if (
+                                                            window.performance.now() <
+                                                            commercialBottomSuppressClickUntil
+                                                        ) {
+                                                            return;
+                                                        }
+                                                        openVideo(video);
+                                                    },
                                                     children: (
                                                         <>
                                                             <div className={styles.thumbnailWrapper}>
@@ -483,7 +688,8 @@ export default function ProjectGrid({
                                                                     width: 1280,
                                                                     height: 720,
                                                                     preload:
-                                                                        realIndex < 2
+                                                                        displayIdx ===
+                                                                        effectiveCommercialBottomDisplayIndex
                                                                             ? "auto"
                                                                             : "metadata",
                                                                 })}
@@ -509,11 +715,7 @@ export default function ProjectGrid({
                                             <button
                                                 type="button"
                                                 className={styles.latestBottomArrow}
-                                                onClick={() =>
-                                                    setCommercialBottomDisplayIndex(
-                                                        (current) => current - 1,
-                                                    )
-                                                }
+                                                onClick={() => stepCommercialBottom(-1)}
                                                 aria-label="Previous video"
                                             >
                                                 <span aria-hidden="true">‹</span>
@@ -531,11 +733,19 @@ export default function ProjectGrid({
                                                                     : styles.latestBottomDot
                                                             }
                                                             onClick={() =>
-                                                                setCommercialBottomDisplayIndex(
-                                                                    hasCommercialBottomLoop
-                                                                        ? index + 1
-                                                                        : index,
-                                                                )
+                                                                {
+                                                                    if (
+                                                                        commercialBottomCarouselCount <
+                                                                        2
+                                                                    ) {
+                                                                        return;
+                                                                    }
+                                                                    setCommercialBottomDisplayIndex(
+                                                                        hasCommercialBottomLoop
+                                                                            ? index + 1
+                                                                            : index,
+                                                                    );
+                                                                }
                                                             }
                                                             aria-label={`Go to video ${index + 1}`}
                                                         />
@@ -545,11 +755,7 @@ export default function ProjectGrid({
                                             <button
                                                 type="button"
                                                 className={styles.latestBottomArrow}
-                                                onClick={() =>
-                                                    setCommercialBottomDisplayIndex(
-                                                        (current) => current + 1,
-                                                    )
-                                                }
+                                                onClick={() => stepCommercialBottom(1)}
                                                 aria-label="Next video"
                                             >
                                                 <span aria-hidden="true">›</span>
@@ -784,6 +990,7 @@ export default function ProjectGrid({
                 videoUrl={activeVideo?.videoUrl ?? ""}
                 streamUid={activeVideo?.streamUid}
                 onClose={closeVideo}
+                fullscreen
             />
         </div>
     );

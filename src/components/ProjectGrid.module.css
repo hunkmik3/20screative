@@ -212,14 +212,17 @@
 .latestBottomViewport {
     width: 100%;
     overflow: hidden;
+    overscroll-behavior-x: contain;
+    touch-action: pan-y;
 }
 
 .latestBottomTrack {
     display: flex;
     align-items: stretch;
-    gap: 20px;
+    gap: var(--latest-bottom-slide-gap, 20px);
     transition: transform 0.52s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: transform;
+    cursor: grab;
 }
 
 .latestBottomSlide {
@@ -538,11 +541,11 @@
    ================================ */
 @media (max-width: 900px) {
     .wrapper {
-        max-width: 92vw;
+        max-width: min(92vw, 720px);
     }
 
     .latestFeatured,
-    .card,
+    .card:not(.latestBottomSlide),
     .newestBanner {
         width: 100% !important;
         max-width: 100% !important;
@@ -551,7 +554,8 @@
 
     .latestGrid {
         grid-template-columns: 1fr;
-        gap: 24px;
+        gap: 28px;
+        margin-bottom: 40px;
     }
 
     .latestFeatured .thumbnailWrapper {
@@ -565,10 +569,6 @@
 
     .latestSideTopRow {
         gap: 16px;
-    }
-
-    .latestBottomSlide {
-        flex-basis: 84%;
     }
 
     .featuredSection {
@@ -599,48 +599,109 @@
 
 @media (max-width: 600px) {
     .wrapper {
-        max-width: 94vw;
+        max-width: calc(100vw - 28px);
     }
 
     .header {
-        padding: 32px 0 24px;
+        padding: 28px 0 22px;
+    }
+
+    .pageTitle {
+        font-size: 1.55rem;
+        line-height: 1.1;
+    }
+
+    .pageSubtitle {
+        max-width: 32ch;
+        font-size: 0.82rem;
+        line-height: 1.55;
     }
 
     .separator {
-        margin: 8px 0 28px;
+        margin: 8px 0 26px;
     }
 
     .sectionTitle {
-        margin-bottom: 28px;
+        margin-bottom: 24px;
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
     }
 
     .latestSide {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 18px;
     }
 
     .latestSideTopRow {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
     }
 
-    .latestBottomTrack {
-        gap: 14px;
+    .cardTitle,
+    .cardTitleLarge {
+        font-size: 0.88rem;
+        line-height: 1.25;
+        margin-top: 10px;
+    }
+
+    .cardDesc {
+        font-size: 0.74rem;
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .latestBottomCarouselFull {
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+    }
+
+    .latestBottomCarousel {
+        overflow: hidden;
     }
 
     .latestBottomSlide {
-        flex-basis: 100%;
+        opacity: 0.58;
+        transform: scale(0.97);
+    }
+
+    .latestBottomSlideActive {
         opacity: 1;
         transform: none;
     }
 
+    .latestBottomControls {
+        margin-top: 12px;
+    }
+
+    .latestBottomArrow {
+        width: 36px;
+        height: 36px;
+    }
+
+    .duration {
+        right: 6px;
+        bottom: 6px;
+        font-size: 0.64rem;
+        padding: 3px 6px;
+    }
+
     .newestBanner {
-        aspect-ratio: 16/9;
+        aspect-ratio: 4 / 3;
+        margin-bottom: 38px;
     }
 
     .bannerOverlay {
         gap: 8px;
-        padding: 18px;
+        padding: 16px;
+    }
+
+    .bannerTitle {
+        font-size: 1.35rem;
+        line-height: 1.12;
     }
 
     .bannerDesc {
