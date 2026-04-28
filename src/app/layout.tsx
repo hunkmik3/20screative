@@ -33,8 +33,8 @@ export const metadata: Metadata = {
     "creative portfolio",
   ],
   icons: {
-    icon: "/logo-white.png",
-    apple: "/logo-white.png",
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
   },
   openGraph: {
     title: "20sCreative — Creative Production",
