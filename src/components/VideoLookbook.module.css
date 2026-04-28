@@ -318,6 +318,10 @@
     width: 40px;
     height: 40px;
   }
+
+  .dots {
+    margin-top: clamp(40px, 8vw, 54px);
+  }
 }
 
 @media (max-width: 480px) {
@@ -342,5 +346,9 @@
     width: 36px;
     height: 36px;
     font-size: 1.35rem;
+  }
+
+  .dots {
+    margin-top: 42px;
   }
 }
