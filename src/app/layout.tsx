@@ -21,21 +21,25 @@ const nunitoSans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "20sCreative — Photographer and Filmmaker Portfolio",
+  title: "20sCreative — Creative Production",
   description:
-    "20sCreative — Creative photographer and filmmaker specializing in fashion, beauty, and jewelry campaigns.",
+    "20sCreative — Creative production studio specializing in fashion, beauty, and jewelry campaigns.",
   keywords: [
-    "photographer",
-    "filmmaker",
+    "creative production",
+    "production studio",
     "fashion photography",
     "beauty photography",
     "jewelry photography",
     "creative portfolio",
   ],
+  icons: {
+    icon: "/logo-white.png",
+    apple: "/logo-white.png",
+  },
   openGraph: {
-    title: "20sCreative — Photographer and Filmmaker Portfolio",
+    title: "20sCreative — Creative Production",
     description:
-      "Creative photographer and filmmaker specializing in fashion, beauty, and jewelry campaigns.",
+      "Creative production studio specializing in fashion, beauty, and jewelry campaigns.",
     type: "website",
     locale: "en_US",
   },

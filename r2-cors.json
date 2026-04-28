@@ -2,8 +2,7 @@
   {
     "AllowedOrigins": [
       "http://localhost:3000",
-      "https://20screative.vercel.app",
-      "https://*.vercel.app"
+      "https://your-production-domain.com"
     ],
     "AllowedMethods": ["GET", "PUT", "POST", "HEAD"],
     "AllowedHeaders": ["*"],
