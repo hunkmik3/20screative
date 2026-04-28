@@ -86,6 +86,7 @@ export default function VideoPopup({
                             autoplay
                             controls
                             preload="auto"
+                            loading="eager"
                         />
                     ) : youtube ? (
                         <iframe

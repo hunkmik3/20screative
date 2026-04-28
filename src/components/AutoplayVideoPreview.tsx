@@ -23,11 +23,11 @@ export default function AutoplayVideoPreview({
   const cleanSrc = src.trim();
   const cleanFallbackSrc = fallbackSrc?.trim();
   const cleanPosterUrl = posterUrl?.trim();
-  const [activeSrc, setActiveSrc] = useState(cleanSrc);
-
-  useEffect(() => {
-    setActiveSrc(cleanSrc);
-  }, [cleanSrc]);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const [readySrc, setReadySrc] = useState<string | null>(null);
+  const activeSrc =
+    failedSrc === cleanSrc && cleanFallbackSrc ? cleanFallbackSrc : cleanSrc;
+  const isReady = readySrc === activeSrc;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -104,23 +104,48 @@ export default function AutoplayVideoPreview({
   if (!activeSrc) return null;
 
   return (
-    <video
-      ref={videoRef}
-      className={className}
-      src={activeSrc}
-      poster={cleanPosterUrl || undefined}
-      autoPlay
-      muted
-      loop
-      playsInline
-      preload={preload}
-      disablePictureInPicture
-      aria-hidden="true"
-      onError={() => {
-        if (cleanFallbackSrc && activeSrc !== cleanFallbackSrc) {
-          setActiveSrc(cleanFallbackSrc);
-        }
-      }}
-    />
+    <>
+      <video
+        ref={videoRef}
+        className={className}
+        src={activeSrc}
+        poster={cleanPosterUrl || undefined}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload={preload}
+        disablePictureInPicture
+        aria-hidden="true"
+        onError={() => {
+          if (cleanFallbackSrc && activeSrc !== cleanFallbackSrc) {
+            setFailedSrc(activeSrc);
+          }
+        }}
+        onCanPlay={() => setReadySrc(activeSrc)}
+        onLoadedData={() => setReadySrc(activeSrc)}
+        onPlaying={() => setReadySrc(activeSrc)}
+        style={{
+          opacity: isReady ? 1 : 0,
+          transition: "opacity 180ms ease",
+        }}
+      />
+      {cleanPosterUrl && !isReady && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          className={className}
+          src={cleanPosterUrl}
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+            objectFit: "cover",
+            pointerEvents: "none",
+          }}
+        />
+      )}
+    </>
   );
 }

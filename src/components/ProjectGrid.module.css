@@ -77,6 +77,7 @@
     border: 0;
     background: #0a0a0a;
     object-fit: cover;
+    pointer-events: none;
 }
 
 .mediaPlaceholder {
@@ -323,6 +324,7 @@
     display: block;
     border: 0;
     background: #0a0a0a;
+    pointer-events: none;
 }
 
 .newestBanner:hover .bannerImage {

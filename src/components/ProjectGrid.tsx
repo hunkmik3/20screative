@@ -98,6 +98,8 @@ export default function ProjectGrid({
         useState(false);
     const [commercialBottomAutoplayStopped, setCommercialBottomAutoplayStopped] =
         useState(false);
+    const [commercialBottomCanPlayPreviews, setCommercialBottomCanPlayPreviews] =
+        useState(false);
     const [commercialBottomSuppressClickUntil, setCommercialBottomSuppressClickUntil] =
         useState(0);
     const commercialBottomViewportRef = useRef<HTMLDivElement>(null);
@@ -213,6 +215,27 @@ export default function ProjectGrid({
         updateViewportWidth();
         window.addEventListener("resize", updateViewportWidth);
         return () => window.removeEventListener("resize", updateViewportWidth);
+    }, [isCommercialLayout]);
+
+    useEffect(() => {
+        if (!isCommercialLayout) return;
+        const viewport = commercialBottomViewportRef.current;
+        if (!viewport || typeof IntersectionObserver === "undefined") {
+            const frame = window.requestAnimationFrame(() => {
+                setCommercialBottomCanPlayPreviews(true);
+            });
+            return () => window.cancelAnimationFrame(frame);
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setCommercialBottomCanPlayPreviews(entry.isIntersecting);
+            },
+            { rootMargin: "520px 0px", threshold: 0 },
+        );
+
+        observer.observe(viewport);
+        return () => observer.disconnect();
     }, [isCommercialLayout]);
 
     const stepCommercialBottom = useCallback(
@@ -457,40 +480,37 @@ export default function ProjectGrid({
         width,
         height,
         preload = "metadata",
+        playPreview = true,
     }: Pick<VideoProject, "title" | "thumbnail" | "videoUrl" | "streamUid"> & {
         className: string;
         width: number;
         height: number;
         preload?: "none" | "metadata" | "auto";
+        playPreview?: boolean;
     }) => {
         const canUseStream = hasAsset(streamUid) && hasCloudflareStreamConfig();
-        const streamVideoUrl = getCloudflareStreamDownloadUrl(streamUid);
         const streamThumbnail = getCloudflareStreamThumbnailUrl(streamUid);
         const posterUrl =
             hasAsset(thumbnail) && !isVideoFileUrl(thumbnail)
                 ? thumbnail
                 : streamThumbnail ?? "";
+        const streamPreviewUrl = canUseStream
+            ? getCloudflareStreamDownloadUrl(streamUid)
+            : null;
+        const fallbackPreviewUrl =
+            hasAsset(videoUrl) && !isYoutubeUrl(videoUrl) ? videoUrl : undefined;
+        const nativePreviewUrl =
+            streamPreviewUrl ?? fallbackPreviewUrl ?? null;
 
-        if (canUseStream && streamVideoUrl) {
+        if (playPreview && nativePreviewUrl) {
             return (
                 <AutoplayVideoPreview
-                    src={streamVideoUrl}
+                    src={nativePreviewUrl}
                     fallbackSrc={
-                        hasAsset(videoUrl) && !isYoutubeUrl(videoUrl)
-                            ? videoUrl
+                        fallbackPreviewUrl && fallbackPreviewUrl !== nativePreviewUrl
+                            ? fallbackPreviewUrl
                             : undefined
                     }
-                    preload={preload}
-                    className={className}
-                    posterUrl={hasAsset(posterUrl) ? posterUrl : undefined}
-                />
-            );
-        }
-
-        if (hasAsset(videoUrl) && !isYoutubeUrl(videoUrl)) {
-            return (
-                <AutoplayVideoPreview
-                    src={videoUrl}
                     posterUrl={hasAsset(posterUrl) ? posterUrl : undefined}
                     className={className}
                     preload={preload}
@@ -656,6 +676,13 @@ export default function ProjectGrid({
                                                           ? 0
                                                           : displayIdx - 1
                                                     : displayIdx;
+                                                const previewDistance = Math.abs(
+                                                    displayIdx -
+                                                        effectiveCommercialBottomDisplayIndex,
+                                                );
+                                                const shouldPlayPreview =
+                                                    commercialBottomCanPlayPreviews &&
+                                                    previewDistance <= 1;
                                                 return renderEditableFrame({
                                                     key: `${video.id}-carousel-${displayIdx}`,
                                                     target: `latest:${realIndex + 3}`,
@@ -688,10 +715,10 @@ export default function ProjectGrid({
                                                                     width: 1280,
                                                                     height: 720,
                                                                     preload:
-                                                                        displayIdx ===
-                                                                        effectiveCommercialBottomDisplayIndex
+                                                                        previewDistance <= 1
                                                                             ? "auto"
                                                                             : "metadata",
+                                                                    playPreview: shouldPlayPreview,
                                                                 })}
                                                                 <span className={styles.duration}>
                                                                     {video.duration}

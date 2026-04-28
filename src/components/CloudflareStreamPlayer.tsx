@@ -11,6 +11,7 @@ interface CloudflareStreamPlayerProps {
   preload?: "none" | "metadata" | "auto";
   posterUrl?: string;
   allowFullscreen?: boolean;
+  loading?: "eager" | "lazy";
 }
 
 export default function CloudflareStreamPlayer({
@@ -24,6 +25,7 @@ export default function CloudflareStreamPlayer({
   preload,
   posterUrl,
   allowFullscreen = true,
+  loading = "lazy",
 }: CloudflareStreamPlayerProps) {
   const src = getCloudflareStreamIframeUrl(streamUid, {
     autoplay,
@@ -43,6 +45,7 @@ export default function CloudflareStreamPlayer({
       title={title || "Video"}
       allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
       allowFullScreen={allowFullscreen}
+      loading={loading}
     />
   );
 }
